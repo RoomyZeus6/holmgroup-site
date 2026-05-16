@@ -7,7 +7,7 @@
 <meta name="description" content="The Holm Group — a holding company by Augustus Holm.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
   html, body { height: 100%; width: 100%; overflow: hidden; }
@@ -106,13 +106,12 @@
   /* DESKTOP ICONS */
   #desktop-icons {
     position: fixed;
-    top: 50px; right: 24px;
+    inset: 28px 0 0 0;
     z-index: 5;
-    display: flex; flex-direction: column;
-    gap: 24px;
-    align-items: center;
+    pointer-events: none;
   }
   .desktop-icon {
+    position: absolute;
     display: flex; flex-direction: column;
     align-items: center; gap: 4px;
     width: 88px;
@@ -120,9 +119,12 @@
     padding: 6px;
     border-radius: 6px;
     transition: background 0.1s;
+    pointer-events: all;
+    user-select: none;
   }
   .desktop-icon:hover { background: rgba(0,0,0,0.06); }
   .desktop-icon.selected { background: rgba(70,130,255,0.2); }
+  .desktop-icon.dragging { opacity: 0.85; z-index: 50 !important; }
   .desktop-icon-img {
     width: 56px; height: 56px;
     border-radius: 13px;
@@ -137,6 +139,14 @@
     text-shadow: 0 1px 3px rgba(255,255,255,0.8);
     padding: 1px 4px;
     border-radius: 3px;
+  }
+  .desktop-icon.has-window::before {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 50%; transform: translateX(-50%);
+    width: 4px; height: 4px;
+    background: rgba(0,0,0,0.35);
+    border-radius: 50%;
   }
 
   /* WINDOWS */
@@ -410,50 +420,6 @@
     font-style: italic;
   }
 
-  /* DOCK */
-  #dock {
-    position: fixed;
-    bottom: 8px;
-    left: 50%; transform: translateX(-50%);
-    background: rgba(255,255,255,0.5);
-    backdrop-filter: blur(40px) saturate(180%);
-    -webkit-backdrop-filter: blur(40px) saturate(180%);
-    border: 0.5px solid rgba(0,0,0,0.08);
-    border-radius: 18px;
-    padding: 6px;
-    display: flex; align-items: flex-end; gap: 4px;
-    z-index: 500;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.12);
-  }
-  .dock-icon {
-    width: 52px; height: 52px;
-    border-radius: 12px;
-    display: flex; align-items: center; justify-content: center;
-    font-weight: 500;
-    cursor: pointer;
-    transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
-    box-shadow: 0 2px 6px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.2);
-    position: relative;
-  }
-  .dock-icon:hover { transform: translateY(-8px) scale(1.15); }
-  .dock-icon.has-window::after {
-    content: '';
-    position: absolute;
-    bottom: -7px;
-    left: 50%; transform: translateX(-50%);
-    width: 4px; height: 4px;
-    background: rgba(0,0,0,0.4);
-    border-radius: 50%;
-  }
-  .dock-icon.minimized-window::after {
-    background: rgba(0,0,0,0.2);
-  }
-  .dock-divider {
-    width: 1px; height: 40px;
-    background: rgba(0,0,0,0.1);
-    margin: 0 4px;
-    align-self: center;
-  }
 
   /* APP COLORS */
   .app-checkrx { background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%); color: white; }
@@ -498,12 +464,120 @@
     margin: 4px 0;
   }
 
+  /* HINT BAR */
+  #hint-bar {
+    position: fixed;
+    bottom: 20px; left: 50%; transform: translateX(-50%);
+    background: rgba(0,0,0,0.55);
+    color: rgba(255,255,255,0.9);
+    font-size: 12px;
+    padding: 6px 14px;
+    border-radius: 20px;
+    pointer-events: none;
+    z-index: 600;
+    transition: opacity 0.6s ease;
+    white-space: nowrap;
+  }
+  #hint-bar.hidden { opacity: 0; }
+
+  /* PRESS WORDMARKS */
+  .press-wordmark {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-weight: 700;
+    font-size: 15px;
+    color: #1d1d1f;
+    letter-spacing: -0.02em;
+    line-height: 1;
+  }
+  .press-wordmark.sans {
+    font-family: 'Inter', -apple-system, sans-serif;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+  }
+
   /* MOBILE */
   @media (max-width: 768px) {
     #desktop-icons { display: none; }
-    .window { min-width: 90vw; max-width: 90vw; left: 5vw !important; }
-    .stat-grid { grid-template-columns: 1fr; }
-    .dock-icon { width: 44px; height: 44px; }
+    #hint-bar { display: none; }
+    #menu-bar { display: none; }
+
+    #mobile-status-bar {
+      display: flex;
+      position: fixed; top: 0; left: 0; right: 0;
+      height: 44px;
+      background: rgba(255,255,255,0.72);
+      backdrop-filter: blur(20px) saturate(180%);
+      align-items: center; justify-content: space-between;
+      padding: 0 20px;
+      font-size: 14px; font-weight: 500;
+      z-index: 1000;
+      border-bottom: 0.5px solid rgba(0,0,0,0.08);
+    }
+    #mobile-time { font-variant-numeric: tabular-nums; }
+
+    #mobile-home {
+      display: block;
+      position: fixed; inset: 44px 0 0 0;
+      overflow-y: auto;
+      padding: 48px 16px 40px;
+      z-index: 5;
+    }
+    #mobile-home-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 24px 8px;
+      max-width: 380px;
+      margin: 0 auto;
+    }
+    .mobile-icon {
+      display: flex; flex-direction: column;
+      align-items: center; gap: 6px;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .mobile-icon-img {
+      width: 60px; height: 60px;
+      border-radius: 15px;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.18);
+    }
+    .mobile-icon-label {
+      font-size: 11px;
+      color: #1d1d1f;
+      text-align: center;
+      line-height: 1.3;
+      text-shadow: 0 1px 2px rgba(255,255,255,0.7);
+    }
+
+    #mobile-back {
+      display: none;
+      position: fixed; top: 0; left: 0; right: 0;
+      height: 44px;
+      background: rgba(255,255,255,0.72);
+      backdrop-filter: blur(20px) saturate(180%);
+      align-items: center;
+      padding: 0 16px;
+      z-index: 2001;
+      border-bottom: 0.5px solid rgba(0,0,0,0.08);
+      font-size: 14px; color: #0a84ff;
+      gap: 4px; cursor: pointer;
+    }
+
+    body.has-open-app #mobile-home { display: none; }
+    body.has-open-app #mobile-back { display: flex; }
+    body.has-open-app .window.mobile-fullscreen { display: flex !important; }
+
+    .window.mobile-fullscreen {
+      position: fixed !important;
+      inset: 44px 0 0 0 !important;
+      width: 100vw !important;
+      height: calc(100vh - 44px) !important;
+      border-radius: 0 !important;
+      min-width: unset !important;
+    }
+    .window:not(.mobile-fullscreen) { display: none !important; }
+
+    .stat-grid { grid-template-columns: 1fr 1fr; }
     #spotlight-box { width: 90vw; }
   }
 
@@ -645,6 +719,7 @@
   <div class="apple-menu-item" onclick="openApp('contact'); closeAppleMenu();">Get in touch…</div>
   <div class="apple-menu-divider"></div>
   <div class="apple-menu-item" onclick="closeAllWindows(); closeAppleMenu();">Close all windows</div>
+  <div class="apple-menu-item" onclick="resetDesktop(); closeAppleMenu();">Reset Desktop Layout</div>
 </div>
 
 <!-- SPOTLIGHT -->
@@ -659,19 +734,46 @@
   </div>
 </div>
 
+<!-- HINT BAR -->
+<div id="hint-bar">Double-click icons to open · Drag to rearrange</div>
+
 <!-- DESKTOP ICONS -->
 <div id="desktop-icons">
-  <div class="desktop-icon" ondblclick="openApp('about')" onclick="selectIcon(this)">
+  <div class="desktop-icon" data-app="about">
     <div class="desktop-icon-img app-about"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg></div>
     <div class="desktop-icon-label">About Me</div>
   </div>
-  <div class="desktop-icon" ondblclick="openApp('holm')" onclick="selectIcon(this)">
+  <div class="desktop-icon" data-app="holm">
     <div class="desktop-icon-img app-holm"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round"><line x1="6" y1="4" x2="6" y2="20"/><line x1="18" y1="4" x2="18" y2="20"/><line x1="6" y1="12" x2="18" y2="12"/></svg></div>
     <div class="desktop-icon-label">The Holm Group</div>
   </div>
-  <div class="desktop-icon" ondblclick="openApp('press')" onclick="selectIcon(this)">
+  <div class="desktop-icon" data-app="checkrx">
+    <div class="desktop-icon-img app-checkrx"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="10" rx="5"/><line x1="12" y1="7" x2="12" y2="17"/><polyline points="14 13 15.5 14.5 19 11"/></svg></div>
+    <div class="desktop-icon-label">CheckRx</div>
+  </div>
+  <div class="desktop-icon" data-app="candor">
+    <div class="desktop-icon-img app-candor"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><line x1="7" y1="9" x2="17" y2="9"/><line x1="7" y1="13" x2="17" y2="13"/></svg></div>
+    <div class="desktop-icon-label">Candor</div>
+  </div>
+  <div class="desktop-icon" data-app="ypc">
+    <div class="desktop-icon-img app-ypc"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="22" x2="12" y2="11"/><path d="M12 11 C10 9 7 7 7 4 C10 3 13 7 12 11"/><path d="M12 14 C14 12 17 10 20 11 C20 14 17 17 12 14"/></svg></div>
+    <div class="desktop-icon-label">YPC</div>
+  </div>
+  <div class="desktop-icon" data-app="ypclabs">
+    <div class="desktop-icon-img app-ypclabs"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3h8M10 3v6L5 17a2 2 0 0 0 1.7 3h10.6a2 2 0 0 0 1.7-3L14 9V3"/><line x1="5.5" y1="15" x2="18.5" y2="15"/></svg></div>
+    <div class="desktop-icon-label">YPC Labs</div>
+  </div>
+  <div class="desktop-icon" data-app="terminal">
+    <div class="desktop-icon-img app-terminal"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#50fa7b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 9 9 12 4 15"/><line x1="12" y1="15" x2="20" y2="15"/></svg></div>
+    <div class="desktop-icon-label">Terminal</div>
+  </div>
+  <div class="desktop-icon" data-app="press">
     <div class="desktop-icon-img app-press"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21V5a2 2 0 0 1 2-2h11l5 5v13a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="16 3 16 8 21 8"/><line x1="7" y1="12" x2="17" y2="12"/><line x1="7" y1="16" x2="14" y2="16"/></svg></div>
     <div class="desktop-icon-label">Press</div>
+  </div>
+  <div class="desktop-icon" data-app="contact">
+    <div class="desktop-icon-img app-contact"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></div>
+    <div class="desktop-icon-label">Contact</div>
   </div>
 </div>
 
@@ -877,7 +979,7 @@
 
       <a href="https://www.entrepreneur.com/entrepreneurs/checkrx-is-making-medicare-manageable-for-seniors" target="_blank" rel="noopener noreferrer" class="press-featured">
         <div class="press-featured-meta">
-          <div class="press-outlet">Entrepreneur</div>
+          <div class="press-outlet"><span class="press-wordmark sans">Entrepreneur</span></div>
           <div style="display:flex;align-items:center;gap:8px;"><div class="press-featured-date">May 2026</div><div class="press-featured-arrow">↗</div></div>
         </div>
         <div class="press-featured-headline">CheckRx Is Making Medicare Manageable for Seniors</div>
@@ -885,7 +987,7 @@
 
       <a href="https://www.theguardian.com/us-news/2024/dec/24/augustus-holm-san-diego-shoe-drive-world-record" target="_blank" rel="noopener noreferrer" class="press-featured">
         <div class="press-featured-meta">
-          <div class="press-outlet">The Guardian</div>
+          <div class="press-outlet"><span class="press-wordmark">The Guardian</span></div>
           <div style="display:flex;align-items:center;gap:8px;"><div class="press-featured-date">Dec 2024</div><div class="press-featured-arrow">↗</div></div>
         </div>
         <div class="press-featured-headline">Augustus Holm San Diego shoe drive world record</div>
@@ -893,7 +995,7 @@
 
       <a href="https://www.guinnessworldrecords.com/world-records/109959-most-shoes-donated-to-charity-in-24-hours" target="_blank" rel="noopener noreferrer" class="press-featured">
         <div class="press-featured-meta">
-          <div class="press-outlet">Guinness World Records</div>
+          <div class="press-outlet"><span class="press-wordmark sans">Guinness World Records</span></div>
           <div style="display:flex;align-items:center;gap:8px;"><div class="press-featured-date">Dec 2024</div><div class="press-featured-arrow">↗</div></div>
         </div>
         <div class="press-featured-headline">Most shoes donated to charity in 24 hours</div>
@@ -901,7 +1003,7 @@
 
       <a href="https://www.sandiegouniontribune.com/2024/07/24/someone-san-diego-should-know-augustus-holm/" target="_blank" rel="noopener noreferrer" class="press-featured">
         <div class="press-featured-meta">
-          <div class="press-outlet">San Diego Union-Tribune</div>
+          <div class="press-outlet"><span class="press-wordmark">San Diego Union-Tribune</span></div>
           <div style="display:flex;align-items:center;gap:8px;"><div class="press-featured-date">Jul 2024</div><div class="press-featured-arrow">↗</div></div>
         </div>
         <div class="press-featured-headline">Someone San Diego Should Know: Augustus Holm</div>
@@ -909,7 +1011,7 @@
 
       <a href="https://www.forbes.com/sites/pklein/2025/08/15/gen-z-founders-writing-a-new-playbook-for-business/" target="_blank" rel="noopener noreferrer" class="press-featured">
         <div class="press-featured-meta">
-          <div class="press-outlet">Forbes</div>
+          <div class="press-outlet"><span class="press-wordmark">Forbes</span></div>
           <div style="display:flex;align-items:center;gap:8px;"><div class="press-featured-date">Aug 2025</div><div class="press-featured-arrow">↗</div></div>
         </div>
         <div class="press-featured-headline">Gen Z Founders Writing a New Playbook for Business</div>
@@ -917,7 +1019,7 @@
 
       <a href="https://globalyouth.wharton.upenn.edu/articles/future-of-the-business-world-podcast/kicking-off-a-gap-year-with-a-world-record-and-an-angel-investor/" target="_blank" rel="noopener noreferrer" class="press-featured">
         <div class="press-featured-meta">
-          <div class="press-outlet">Wharton / Penn Global Youth</div>
+          <div class="press-outlet"><span class="press-wordmark sans">Wharton / Penn Global Youth</span></div>
           <div style="display:flex;align-items:center;gap:8px;"><div class="press-featured-date">Dec 2024</div><div class="press-featured-arrow">↗</div></div>
         </div>
         <div class="press-featured-headline">Kicking Off a Gap Year With a World Record and an Angel Investor</div>
@@ -925,7 +1027,7 @@
 
       <a href="https://www.cbsnews.com/losangeles/video/app-founder-explains-why-and-how-he-started-the-senior-medicare-healthcare-assistance-program/" target="_blank" rel="noopener noreferrer" class="press-featured">
         <div class="press-featured-meta">
-          <div class="press-outlet">CBS News LA</div>
+          <div class="press-outlet"><span class="press-wordmark sans">CBS News LA</span></div>
           <div style="display:flex;align-items:center;gap:8px;"><div class="press-featured-date">Oct 2025</div><div class="press-featured-arrow">↗</div></div>
         </div>
         <div class="press-featured-headline">App Founder Explains Why and How He Started the Senior Medicare Healthcare Assistance Program</div>
@@ -933,7 +1035,7 @@
 
       <a href="https://upfront.scholastic.com/issues/2024-25/031025/q-a-corner-giving-away-21000-pairs-of-shoes.html?language=english" target="_blank" rel="noopener noreferrer" class="press-featured">
         <div class="press-featured-meta">
-          <div class="press-outlet">Scholastic Upfront</div>
+          <div class="press-outlet"><span class="press-wordmark sans">Scholastic Upfront</span></div>
           <div style="display:flex;align-items:center;gap:8px;"><div class="press-featured-date">Mar 2025</div><div class="press-featured-arrow">↗</div></div>
         </div>
         <div class="press-featured-headline">Q&amp;A Corner: Giving Away 21,000 Pairs of Shoes</div>
@@ -1196,31 +1298,71 @@
   </div>
 </div>
 
-<!-- DOCK -->
-<div id="dock">
-  <div class="dock-icon app-about" onclick="openApp('about')" title="About Me"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg></div>
-  <div class="dock-icon app-holm" onclick="openApp('holm')" title="The Holm Group"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round"><line x1="6" y1="4" x2="6" y2="20"/><line x1="18" y1="4" x2="18" y2="20"/><line x1="6" y1="12" x2="18" y2="12"/></svg></div>
-  <div class="dock-divider"></div>
-  <div class="dock-icon app-checkrx" onclick="openApp('checkrx')" title="CheckRx"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="10" rx="5"/><line x1="12" y1="7" x2="12" y2="17"/><polyline points="14 13 15.5 14.5 19 11"/></svg></div>
-  <div class="dock-icon app-candor" onclick="openApp('candor')" title="Candor"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><line x1="7" y1="9" x2="17" y2="9"/><line x1="7" y1="13" x2="17" y2="13"/></svg></div>
-  <div class="dock-icon app-ypc" onclick="openApp('ypc')" title="YPC"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="22" x2="12" y2="11"/><path d="M12 11 C10 9 7 7 7 4 C10 3 13 7 12 11"/><path d="M12 14 C14 12 17 10 20 11 C20 14 17 17 12 14"/></svg></div>
-  <div class="dock-icon app-ypclabs" onclick="openApp('ypclabs')" title="YPC Labs"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3h8M10 3v6L5 17a2 2 0 0 0 1.7 3h10.6a2 2 0 0 0 1.7-3L14 9V3"/><line x1="5.5" y1="15" x2="18.5" y2="15"/><line x1="12" y1="17" x2="12" y2="19"/><line x1="11" y1="18" x2="13" y2="18"/></svg></div>
-  <div class="dock-divider"></div>
-  <div class="dock-icon app-terminal" onclick="openApp('terminal')" title="Terminal"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 9 9 12 4 15"/><line x1="12" y1="15" x2="20" y2="15"/></svg></div>
-  <div class="dock-divider"></div>
-  <div class="dock-icon app-press" onclick="openApp('press')" title="Press"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21V5a2 2 0 0 1 2-2h11l5 5v13a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="16 3 16 8 21 8"/><line x1="7" y1="12" x2="17" y2="12"/><line x1="7" y1="16" x2="14" y2="16"/></svg></div>
-  <div class="dock-icon app-contact" onclick="openApp('contact')" title="Contact"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></div>
+<!-- MOBILE STATUS BAR -->
+<div id="mobile-status-bar">
+  <div id="mobile-time">9:41 AM</div>
+  <div style="font-weight:600;letter-spacing:-0.01em;">The Holm Group</div>
+  <div style="font-size:12px;color:#86868b;">⌘</div>
+</div>
+
+<!-- MOBILE HOME SCREEN -->
+<div id="mobile-home">
+  <div id="mobile-home-grid">
+    <div class="mobile-icon" onclick="openApp('about')">
+      <div class="mobile-icon-img app-about"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg></div>
+      <div class="mobile-icon-label">About Me</div>
+    </div>
+    <div class="mobile-icon" onclick="openApp('holm')">
+      <div class="mobile-icon-img app-holm"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round"><line x1="6" y1="4" x2="6" y2="20"/><line x1="18" y1="4" x2="18" y2="20"/><line x1="6" y1="12" x2="18" y2="12"/></svg></div>
+      <div class="mobile-icon-label">Holm Group</div>
+    </div>
+    <div class="mobile-icon" onclick="openApp('checkrx')">
+      <div class="mobile-icon-img app-checkrx"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="10" rx="5"/><line x1="12" y1="7" x2="12" y2="17"/><polyline points="14 13 15.5 14.5 19 11"/></svg></div>
+      <div class="mobile-icon-label">CheckRx</div>
+    </div>
+    <div class="mobile-icon" onclick="openApp('candor')">
+      <div class="mobile-icon-img app-candor"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><line x1="7" y1="9" x2="17" y2="9"/><line x1="7" y1="13" x2="17" y2="13"/></svg></div>
+      <div class="mobile-icon-label">Candor</div>
+    </div>
+    <div class="mobile-icon" onclick="openApp('ypc')">
+      <div class="mobile-icon-img app-ypc"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="22" x2="12" y2="11"/><path d="M12 11 C10 9 7 7 7 4 C10 3 13 7 12 11"/><path d="M12 14 C14 12 17 10 20 11 C20 14 17 17 12 14"/></svg></div>
+      <div class="mobile-icon-label">YPC</div>
+    </div>
+    <div class="mobile-icon" onclick="openApp('ypclabs')">
+      <div class="mobile-icon-img app-ypclabs"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3h8M10 3v6L5 17a2 2 0 0 0 1.7 3h10.6a2 2 0 0 0 1.7-3L14 9V3"/><line x1="5.5" y1="15" x2="18.5" y2="15"/></svg></div>
+      <div class="mobile-icon-label">YPC Labs</div>
+    </div>
+    <div class="mobile-icon" onclick="openApp('press')">
+      <div class="mobile-icon-img app-press"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21V5a2 2 0 0 1 2-2h11l5 5v13a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="16 3 16 8 21 8"/><line x1="7" y1="12" x2="17" y2="12"/><line x1="7" y1="16" x2="14" y2="16"/></svg></div>
+      <div class="mobile-icon-label">Press</div>
+    </div>
+    <div class="mobile-icon" onclick="openApp('contact')">
+      <div class="mobile-icon-img app-contact"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></div>
+      <div class="mobile-icon-label">Contact</div>
+    </div>
+    <div class="mobile-icon" onclick="openApp('terminal')">
+      <div class="mobile-icon-img app-terminal"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#50fa7b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 9 9 12 4 15"/><line x1="12" y1="15" x2="20" y2="15"/></svg></div>
+      <div class="mobile-icon-label">Terminal</div>
+    </div>
+  </div>
+</div>
+
+<!-- MOBILE BACK BUTTON -->
+<div id="mobile-back" onclick="closeMobileApp()">
+  <svg width="8" height="14" viewBox="0 0 8 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="7 1 1 7 7 13"/></svg>
+  Back
 </div>
 
 <script>
 // ============ BOOT ============
 window.addEventListener('load', () => {
+  const mobile = window.innerWidth <= 768;
   setTimeout(() => { document.getElementById('boot-bar').style.width = '100%'; }, 50);
   setTimeout(() => {
     const b = document.getElementById('boot-screen');
     b.style.opacity = '0';
     setTimeout(() => b.style.display = 'none', 100);
-  }, 700);
+  }, mobile ? 500 : 700);
 });
 
 // ============ CLOCK ============
@@ -1265,9 +1407,34 @@ function setActiveWindow(name) {
   }
 }
 
+function isMobile() { return window.innerWidth <= 768; }
+
+function closeMobileApp() {
+  document.querySelectorAll('.window.mobile-fullscreen').forEach(w => {
+    w.classList.remove('mobile-fullscreen', 'active');
+    w.style.display = 'none';
+    openWindows.delete(w.id.replace('window-', ''));
+  });
+  document.body.classList.remove('has-open-app');
+}
+
 function openApp(name) {
   const win = document.getElementById('window-' + name);
   if (!win) return;
+
+  if (isMobile()) {
+    document.querySelectorAll('.window.mobile-fullscreen').forEach(w => {
+      w.classList.remove('mobile-fullscreen', 'active');
+      w.style.display = 'none';
+      openWindows.delete(w.id.replace('window-', ''));
+    });
+    win.classList.add('mobile-fullscreen', 'active');
+    win.style.display = 'flex';
+    document.body.classList.add('has-open-app');
+    openWindows.add(name);
+    if (name === 'terminal') setTimeout(() => document.getElementById('terminal-input').focus(), 50);
+    return;
+  }
 
   if (minimizedWindows.has(name)) {
     unminimizeWindow(name);
@@ -1286,7 +1453,7 @@ function openApp(name) {
   win.style.zIndex = ++zIndexCounter;
   openWindows.add(name);
   setActiveWindow(name);
-  updateDockIndicators();
+  updateIconIndicators();
 
   win.addEventListener('animationend', () => {
     win.classList.remove('window-opening');
@@ -1304,18 +1471,18 @@ function closeWindow(name) {
     win.style.display = 'none';
     openWindows.delete(name);
     if (activeWinName === name) setActiveWindow(null);
-    updateDockIndicators();
+    updateIconIndicators();
   }, { once: true });
 }
 
 function minimizeWindow(name) {
   const win = document.getElementById('window-' + name);
   if (!win || minimizedWindows.has(name)) return;
-  const dockIcon = document.querySelector(`.dock-icon[onclick*="${name}"]`);
+  const desktopIcon = document.querySelector(`.desktop-icon[data-app="${name}"]`);
   const rect = win.getBoundingClientRect();
   let tx = 0, ty = 0;
-  if (dockIcon) {
-    const dr = dockIcon.getBoundingClientRect();
+  if (desktopIcon) {
+    const dr = desktopIcon.getBoundingClientRect();
     tx = dr.left + dr.width / 2 - (rect.left + rect.width / 2);
     ty = dr.top + dr.height / 2 - (rect.top + rect.height / 2);
   }
@@ -1325,7 +1492,7 @@ function minimizeWindow(name) {
   minimizedWindows.set(name, { transform: '', opacity: '' });
   openWindows.delete(name);
   if (activeWinName === name) setActiveWindow(null);
-  updateDockIndicators();
+  updateIconIndicators();
   setTimeout(() => {
     win.classList.remove('window-minimizing', 'active', 'window-active');
     win.style.display = 'none';
@@ -1343,7 +1510,7 @@ function unminimizeWindow(name) {
   win.style.zIndex = ++zIndexCounter;
   openWindows.add(name);
   setActiveWindow(name);
-  updateDockIndicators();
+  updateIconIndicators();
   win.addEventListener('animationend', () => {
     win.classList.remove('window-opening');
     win.classList.add('active');
@@ -1377,17 +1544,17 @@ function closeAllWindows() {
   [...openWindows].forEach(n => closeWindow(n));
 }
 
-function updateDockIndicators() {
-  document.querySelectorAll('.dock-icon').forEach(icon => {
-    icon.classList.remove('has-window', 'minimized-window');
+function updateIconIndicators() {
+  document.querySelectorAll('.desktop-icon').forEach(icon => {
+    icon.classList.remove('has-window');
   });
   openWindows.forEach(name => {
-    const dockIcon = document.querySelector(`.dock-icon[onclick*="${name}"]`);
-    if (dockIcon) dockIcon.classList.add('has-window');
+    const icon = document.querySelector(`.desktop-icon[data-app="${name}"]`);
+    if (icon) icon.classList.add('has-window');
   });
   minimizedWindows.forEach((_, name) => {
-    const dockIcon = document.querySelector(`.dock-icon[onclick*="${name}"]`);
-    if (dockIcon) dockIcon.classList.add('has-window', 'minimized-window');
+    const icon = document.querySelector(`.desktop-icon[data-app="${name}"]`);
+    if (icon) icon.classList.add('has-window');
   });
 }
 
@@ -1432,13 +1599,130 @@ document.addEventListener('mousemove', (e) => {
 });
 document.addEventListener('mouseup', () => { dragState = null; });
 
-// ============ ICON SELECTION ============
-let selectedIcon = null;
-function selectIcon(el) {
-  if (selectedIcon) selectedIcon.classList.remove('selected');
-  el.classList.add('selected');
-  selectedIcon = el;
+// ============ ICON POSITIONS + DRAG ============
+const ICON_DEFAULTS = {
+  about:    { x: 5,  y: 12 },
+  holm:     { x: 5,  y: 26 },
+  checkrx:  { x: 88, y: 12 },
+  candor:   { x: 88, y: 26 },
+  ypc:      { x: 88, y: 40 },
+  ypclabs:  { x: 88, y: 54 },
+  terminal: { x: 88, y: 80 },
+  press:    { x: 5,  y: 70 },
+  contact:  { x: 5,  y: 84 },
+};
+
+function clampIconPos(x, y) {
+  const mw = window.innerWidth, mh = window.innerHeight;
+  return {
+    x: Math.max(0, Math.min(x, mw - 96)),
+    y: Math.max(0, Math.min(y, mh - 80))
+  };
 }
+
+function getDefaultPos(name) {
+  const d = ICON_DEFAULTS[name] || { x: 5, y: 12 };
+  const x = (d.x / 100) * window.innerWidth;
+  const y = (d.y / 100) * (window.innerHeight - 28);
+  return clampIconPos(x, y);
+}
+
+function loadIconPositions() {
+  try { return JSON.parse(localStorage.getItem('holm-icon-positions') || '{}'); } catch { return {}; }
+}
+
+function saveIconPositions(positions) {
+  try { localStorage.setItem('holm-icon-positions', JSON.stringify(positions)); } catch {}
+}
+
+function applyIconPositions() {
+  const saved = loadIconPositions();
+  document.querySelectorAll('.desktop-icon[data-app]').forEach(el => {
+    const name = el.dataset.app;
+    let pos;
+    if (saved[name]) {
+      pos = clampIconPos(saved[name].x, saved[name].y);
+    } else {
+      pos = getDefaultPos(name);
+    }
+    el.style.left = pos.x + 'px';
+    el.style.top  = pos.y + 'px';
+  });
+}
+
+function resetDesktop() {
+  localStorage.removeItem('holm-icon-positions');
+  applyIconPositions();
+}
+
+applyIconPositions();
+window.addEventListener('resize', applyIconPositions);
+
+// Icon drag
+let iconDrag = null;
+let selectedIcon = null;
+
+document.querySelectorAll('.desktop-icon[data-app]').forEach(el => {
+  el.addEventListener('mousedown', (e) => {
+    if (e.button !== 0) return;
+    e.stopPropagation();
+    const rect = el.getBoundingClientRect();
+    iconDrag = {
+      el,
+      startX: e.clientX, startY: e.clientY,
+      offX: e.clientX - rect.left,
+      offY: e.clientY - rect.top,
+      moved: false,
+      raf: null
+    };
+  });
+});
+
+document.addEventListener('mousemove', (e) => {
+  if (!iconDrag) return;
+  const dx = Math.abs(e.clientX - iconDrag.startX);
+  const dy = Math.abs(e.clientY - iconDrag.startY);
+  if (!iconDrag.moved && dx < 5 && dy < 5) return;
+  iconDrag.moved = true;
+  iconDrag.el.classList.add('dragging');
+  const nx = e.clientX - iconDrag.offX;
+  const ny = e.clientY - iconDrag.offY;
+  if (iconDrag.raf) cancelAnimationFrame(iconDrag.raf);
+  iconDrag.raf = requestAnimationFrame(() => {
+    const pos = clampIconPos(nx, ny);
+    iconDrag.el.style.left = pos.x + 'px';
+    iconDrag.el.style.top  = pos.y + 'px';
+  });
+});
+
+document.addEventListener('mouseup', () => {
+  if (!iconDrag) return;
+  iconDrag.el.classList.remove('dragging');
+  if (iconDrag.moved) {
+    const saved = loadIconPositions();
+    saved[iconDrag.el.dataset.app] = {
+      x: parseFloat(iconDrag.el.style.left),
+      y: parseFloat(iconDrag.el.style.top)
+    };
+    saveIconPositions(saved);
+  }
+  iconDrag = null;
+});
+
+// Icon click = select; dblclick = open
+document.querySelectorAll('.desktop-icon[data-app]').forEach(el => {
+  el.addEventListener('click', (e) => {
+    if (iconDrag && iconDrag.moved) return;
+    if (selectedIcon) selectedIcon.classList.remove('selected');
+    el.classList.add('selected');
+    selectedIcon = el;
+    e.stopPropagation();
+  });
+  el.addEventListener('dblclick', (e) => {
+    openApp(el.dataset.app);
+  });
+});
+
 document.addEventListener('click', (e) => {
   if (!e.target.closest('.desktop-icon')) {
     if (selectedIcon) { selectedIcon.classList.remove('selected'); selectedIcon = null; }
@@ -1532,7 +1816,17 @@ const COMMANDS = {
     "",
     "Or just ask a question in plain English."
   ],
-  whoami: () => [`augustus_holm — ${SITE_DATA.founder.role}`],
+  whoami: () => [
+    "  █████╗ ██╗  ██╗",
+    "  ██╔══██╗██║  ██║",
+    "  ███████║███████║",
+    "  ██╔══██║██╔══██║",
+    "  ██║  ██║██║  ██║",
+    "  ╚═╝  ╚═╝╚═╝  ╚═╝",
+    "",
+    `  ${SITE_DATA.founder.name} — ${SITE_DATA.founder.role}`,
+    `  ${SITE_DATA.founder.location}`
+  ],
   about: () => { openApp('about'); return ["Opening About…"]; },
   ventures: () => [
     "Active ventures:",
@@ -1560,7 +1854,29 @@ const COMMANDS = {
       '<div class="terminal-line terminal-output dim">Holm OS 1.0.0 — augustus@holm</div>' +
       '<div class="terminal-line">&nbsp;</div>';
     return [];
-  }
+  },
+  vim: () => ["vim: command not found. (Good. Stay out.)", "", "Try 'help' instead."],
+  vi: () => ["vim: command not found. (Good. Stay out.)", "", "Try 'help' instead."],
+  nano: () => ["nano: command not found."],
+  exit: () => { setTimeout(() => closeWindow('terminal'), 400); return ["logout"]; },
+  quit: () => { setTimeout(() => closeWindow('terminal'), 400); return ["logout"]; },
+  hello: () => ["Hey. Type 'help' to see what I can do."],
+  hi: () => ["Hey. Type 'help' to see what I can do."],
+  cd: (args) => args ? [`cd: ${args}: No such directory`] : ["~"],
+  ls: () => ["about/", "checkrx/", "candor/", "ypc/", "ypclabs/", "press/", "contact/", "terminal/"],
+  cat: (args) => args ? [`cat: ${args}: Permission denied`] : ["cat: missing operand"],
+  make: () => ["make: *** No targets specified. Stop.", "", "Try building a company instead."],
+  sudo: () => ["sudo: you are not in the sudoers file.", "This incident will be reported."],
+  'make money': () => [
+    "Initializing revenue engine...",
+    "Building product people want... ████████░░ 80%",
+    "Hiring great team... ██████████ 100%",
+    "Execution... ████████████ done.",
+    "",
+    "Revenue: $∞ (eventually)",
+    "Patience required: yes"
+  ],
+  easter: () => ["🥚 You found it. Nothing here though. Go build something."],
 };
 
 // Natural language fallback — keyword based
@@ -1678,11 +1994,15 @@ function handleTerminalCommand(input) {
   echo.innerHTML = `<span class="terminal-prompt">augustus@holm ~ $</span> <span class="terminal-user">${escapeHtml(trimmed)}</span>`;
   out.appendChild(echo);
 
-  // Match command first
-  const cmd = trimmed.toLowerCase().split(/\s+/)[0];
+  // Match command first (check multi-word then single-word)
+  const lower = trimmed.toLowerCase();
+  const cmd = lower.split(/\s+/)[0];
+  const args = trimmed.slice(cmd.length).trim();
   let response;
-  if (COMMANDS[cmd]) {
-    response = COMMANDS[cmd]();
+  if (COMMANDS[lower]) {
+    response = COMMANDS[lower](args);
+  } else if (COMMANDS[cmd]) {
+    response = COMMANDS[cmd](args);
   } else {
     response = answerQuestion(trimmed);
   }
@@ -1844,9 +2164,60 @@ document.getElementById('spotlight-overlay').addEventListener('mousedown', (e) =
 
 // ============ KEYBOARD ============
 document.addEventListener('keydown', (e) => {
-  if (e.key === 'Escape') { closeAppleMenu(); closeSpotlight(); }
+  if (e.key === 'Escape') { closeAppleMenu(); closeSpotlight(); if (isMobile()) closeMobileApp(); }
   if ((e.metaKey && e.key === 'k') || (e.ctrlKey && !e.metaKey && e.key === 'k')) { e.preventDefault(); openSpotlight(); }
 });
+
+// ============ CURSOR PARALLAX ============
+(function() {
+  let mx = 0, my = 0, cx = 0, cy = 0;
+  const inner = document.getElementById('wallpaper-inner');
+  document.addEventListener('mousemove', (e) => {
+    mx = (e.clientX / window.innerWidth  - 0.5) * 2;
+    my = (e.clientY / window.innerHeight - 0.5) * 2;
+  });
+  function tick() {
+    if (!isMobile()) {
+      cx += (mx - cx) * 0.08;
+      cy += (my - cy) * 0.08;
+      inner.style.transform = `translate(${cx * -10}px, ${cy * -8}px)`;
+    }
+    requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+})();
+
+// ============ HINT BAR ============
+(function() {
+  if (sessionStorage.getItem('hint-seen')) {
+    document.getElementById('hint-bar').classList.add('hidden');
+    return;
+  }
+  setTimeout(() => {
+    const bar = document.getElementById('hint-bar');
+    bar.classList.add('hidden');
+    sessionStorage.setItem('hint-seen', '1');
+  }, 5000);
+  const bar = document.getElementById('hint-bar');
+  bar.addEventListener('mouseenter', () => bar.classList.remove('hidden'));
+  bar.addEventListener('mouseleave', () => bar.classList.add('hidden'));
+})();
+
+// ============ MOBILE CLOCK ============
+(function() {
+  function updateMobileTime() {
+    const d = new Date();
+    let h = d.getHours(), m = d.getMinutes().toString().padStart(2,'0');
+    const ampm = h >= 12 ? 'PM' : 'AM';
+    h = h % 12 || 12;
+    const el = document.getElementById('mobile-time');
+    if (el) el.textContent = `${h}:${m} ${ampm}`;
+  }
+  updateMobileTime();
+  setInterval(updateMobileTime, 10000);
+})();
+
+
 </script>
 
 </body>
