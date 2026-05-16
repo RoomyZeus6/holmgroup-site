@@ -17,7 +17,7 @@
     color: #1d1d1f;
     user-select: none;
     -webkit-font-smoothing: antialiased;
-    cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='20'%3E%3Cpath fill='black' d='M0 0L0 15 4 11 7 17 9 16 6 10 11 10Z'/%3E%3Cpath fill='white' d='M1 2L1 14 4 11 7 16 8 16 5 10 10 10Z'/%3E%3C/svg%3E") 0 0, auto;
+    cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32'%3E%3Cpath fill='white' stroke='white' stroke-width='4' stroke-linejoin='round' d='M0 0 L0 26 L6 20 L10 26 L14 24 L8 16 L20 16 L18 14 L16 12 L14 10 L12 8 L10 6 L8 4 L6 2 L4 0 Z'/%3E%3Cpath fill='black' d='M0 0 L0 26 L6 20 L10 26 L14 24 L8 16 L20 16 L18 14 L16 12 L14 10 L12 8 L10 6 L8 4 L6 2 L4 0 Z'/%3E%3C/svg%3E") 0 0, auto;
   }
 
   /* WALLPAPER */
@@ -1733,15 +1733,15 @@ document.addEventListener('mouseup', () => { dragState = null; });
 
 // ============ ICON POSITIONS + DRAG ============
 const ICON_DEFAULTS = {
-  about:    { x: 3,  y: 8  },
-  holm:     { x: 3,  y: 24 },
-  checkrx:  { x: 90, y: 8  },
-  candor:   { x: 90, y: 24 },
-  ypc:      { x: 90, y: 40 },
-  ypclabs:  { x: 90, y: 56 },
-  terminal: { x: 90, y: 84 },
-  press:    { x: 3,  y: 68 },
-  contact:  { x: 3,  y: 84 },
+  about:    { x: 4,  y: 10 },
+  holm:     { x: 16, y: 10 },
+  checkrx:  { x: 28, y: 10 },
+  candor:   { x: 4,  y: 28 },
+  ypc:      { x: 16, y: 28 },
+  ypclabs:  { x: 28, y: 28 },
+  press:    { x: 4,  y: 46 },
+  contact:  { x: 16, y: 46 },
+  terminal: { x: 28, y: 46 },
 };
 
 function clampIconPos(x, y) {
@@ -1787,7 +1787,7 @@ function resetDesktop() {
   applyIconPositions();
 }
 
-const LAYOUT_VERSION = '2';
+const LAYOUT_VERSION = '3';
 if (localStorage.getItem('holm-layout-version') !== LAYOUT_VERSION) {
   localStorage.removeItem('holm-icon-positions');
   localStorage.setItem('holm-layout-version', LAYOUT_VERSION);
