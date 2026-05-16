@@ -1,0 +1,1853 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Holm Group</title>
+<meta name="description" content="The Holm Group — a holding company by Augustus Holm.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { height: 100%; width: 100%; overflow: hidden; }
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: #FAFAF7;
+    color: #1d1d1f;
+    user-select: none;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* WALLPAPER */
+  #desktop-bg {
+    position: fixed; inset: 0;
+    background: #FAFAF7;
+    overflow: hidden;
+    z-index: 0;
+  }
+  #wallpaper-inner {
+    position: absolute;
+    width: 120%; height: 120%;
+    top: -10%; left: -10%;
+    background:
+      radial-gradient(ellipse 55% 45% at 12% 22%, rgba(255,203,164,0.75) 0%, transparent 70%),
+      radial-gradient(ellipse 60% 50% at 78% 12%, rgba(168,216,234,0.70) 0%, transparent 70%),
+      radial-gradient(ellipse 50% 48% at 88% 68%, rgba(197,185,232,0.65) 0%, transparent 70%),
+      radial-gradient(ellipse 58% 42% at 28% 82%, rgba(240,160,176,0.60) 0%, transparent 70%),
+      radial-gradient(ellipse 45% 55% at 52% 48%, rgba(176,212,176,0.50) 0%, transparent 70%),
+      radial-gradient(ellipse 40% 38% at  8% 72%, rgba(250,224,200,0.70) 0%, transparent 70%);
+    filter: blur(20px);
+    will-change: transform;
+  }
+
+  /* BOOT SCREEN */
+  #boot-screen {
+    position: fixed; inset: 0;
+    background: #000;
+    z-index: 10000;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    transition: opacity 0.1s ease;
+  }
+  #boot-logo {
+    font-size: 64px; font-weight: 200;
+    letter-spacing: -0.04em;
+    margin-bottom: 20px;
+    opacity: 0.95;
+  }
+  #boot-name {
+    font-size: 12px;
+    color: rgba(255,255,255,0.45);
+    margin-bottom: 32px;
+    letter-spacing: 0.12em;
+  }
+  #boot-bar-container {
+    width: 240px; height: 2px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  #boot-bar {
+    width: 0%; height: 100%;
+    background: #fff;
+    transition: width 0.65s ease-out;
+  }
+
+  /* MENU BAR */
+  #menu-bar {
+    position: fixed; top: 0; left: 0; right: 0;
+    height: 28px;
+    background: rgba(255,255,255,0.6);
+    backdrop-filter: blur(30px) saturate(180%);
+    -webkit-backdrop-filter: blur(30px) saturate(180%);
+    border-bottom: 0.5px solid rgba(0,0,0,0.08);
+    display: flex; align-items: center;
+    padding: 0 16px;
+    font-size: 13px;
+    color: #1d1d1f;
+    z-index: 1000;
+  }
+  .menu-item {
+    padding: 4px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.1s;
+  }
+  .menu-item:hover { background: rgba(0,0,0,0.06); }
+  .menu-item.logo { font-size: 14px; margin-right: 4px; }
+  .menu-item.bold { font-weight: 600; }
+  #menu-right {
+    margin-left: auto;
+    display: flex; align-items: center; gap: 4px;
+  }
+  #clock { font-variant-numeric: tabular-nums; }
+
+  /* DESKTOP ICONS */
+  #desktop-icons {
+    position: fixed;
+    top: 50px; right: 24px;
+    z-index: 5;
+    display: flex; flex-direction: column;
+    gap: 24px;
+    align-items: center;
+  }
+  .desktop-icon {
+    display: flex; flex-direction: column;
+    align-items: center; gap: 4px;
+    width: 88px;
+    cursor: pointer;
+    padding: 6px;
+    border-radius: 6px;
+    transition: background 0.1s;
+  }
+  .desktop-icon:hover { background: rgba(0,0,0,0.06); }
+  .desktop-icon.selected { background: rgba(70,130,255,0.2); }
+  .desktop-icon-img {
+    width: 56px; height: 56px;
+    border-radius: 13px;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 500;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.2);
+  }
+  .desktop-icon-label {
+    font-size: 12px;
+    color: #1d1d1f;
+    text-align: center;
+    text-shadow: 0 1px 3px rgba(255,255,255,0.8);
+    padding: 1px 4px;
+    border-radius: 3px;
+  }
+
+  /* WINDOWS */
+  .window {
+    position: fixed;
+    background: rgba(246,246,246,0.78);
+    backdrop-filter: blur(40px) saturate(180%);
+    -webkit-backdrop-filter: blur(40px) saturate(180%);
+    border: 0.5px solid rgba(0,0,0,0.08);
+    border-radius: 11px;
+    box-shadow: 0 25px 50px -12px rgba(0,0,0,0.15), 0 0 0 0.5px rgba(0,0,0,0.06);
+    overflow: hidden;
+    display: none;
+    flex-direction: column;
+    min-width: 420px;
+    z-index: 100;
+  }
+  .window.active { display: flex; }
+  .window-titlebar {
+    height: 36px;
+    background: rgba(255,255,255,0.5);
+    display: flex; align-items: center;
+    padding: 0 12px;
+    gap: 8px;
+    border-bottom: 0.5px solid rgba(0,0,0,0.06);
+    cursor: grab;
+  }
+  .window-titlebar:active { cursor: grabbing; }
+  .window-button {
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 8px;
+    color: transparent;
+    font-weight: 700;
+    transition: color 0.1s;
+  }
+  .window-titlebar:hover .window-button { color: rgba(0,0,0,0.5); }
+  .window-button.close { background: #ff5f57; }
+  .window-button.minimize { background: #febc2e; }
+  .window-button.maximize { background: #28c840; }
+  .window-button.close[data-symbol]::after    { content: '✕'; }
+  .window-button.minimize[data-symbol]::after { content: '−'; }
+  .window-button.maximize[data-symbol]::after { content: '+'; }
+  .window-title {
+    position: absolute;
+    left: 50%; transform: translateX(-50%);
+    font-size: 13px; font-weight: 500;
+    color: rgba(0,0,0,0.6);
+    pointer-events: none;
+  }
+  .window-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 28px 32px;
+    font-size: 14px;
+    line-height: 1.6;
+    color: #1d1d1f;
+    user-select: text;
+  }
+  .window-body::-webkit-scrollbar { width: 8px; }
+  .window-body::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.12); border-radius: 4px; }
+
+  /* VENTURE WINDOW CONTENT */
+  .venture-header {
+    display: flex; align-items: center; gap: 16px;
+    margin-bottom: 24px;
+    padding-bottom: 20px;
+    border-bottom: 0.5px solid rgba(0,0,0,0.08);
+  }
+  .venture-logo {
+    width: 64px; height: 64px;
+    border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 500; font-size: 22px;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.15);
+  }
+  .venture-name {
+    font-size: 22px; font-weight: 600;
+    color: #1d1d1f;
+    margin-bottom: 2px;
+  }
+  .venture-tagline {
+    font-size: 13px;
+    color: #86868b;
+  }
+  .stat-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+  .stat-card {
+    background: rgba(0,0,0,0.04);
+    border: 0.5px solid rgba(0,0,0,0.08);
+    border-radius: 8px;
+    padding: 14px;
+  }
+  .stat-label {
+    font-size: 11px;
+    color: #86868b;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 6px;
+  }
+  .stat-value {
+    font-size: 18px;
+    font-weight: 600;
+    color: #1d1d1f;
+  }
+  .venture-about {
+    font-size: 14px;
+    line-height: 1.7;
+    color: #3a3a3c;
+    margin-bottom: 24px;
+  }
+  .venture-cta {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 8px 16px;
+    background: rgba(0,0,0,0.05);
+    border: 0.5px solid rgba(0,0,0,0.12);
+    border-radius: 6px;
+    color: #1d1d1f;
+    font-size: 13px;
+    font-weight: 500;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .venture-cta:hover { background: rgba(0,0,0,0.09); }
+  .placeholder {
+    color: rgba(180,120,0,0.8);
+    font-style: italic;
+  }
+
+  /* ABOUT PROSE */
+  .about-prose { font-size: 15px; line-height: 1.7; color: #3a3a3c; margin-bottom: 18px; }
+  .about-pullquote {
+    font-family: Georgia, 'Times New Roman', serif;
+    font-size: 17px; font-style: italic;
+    color: #3a3a3c; line-height: 1.6;
+    margin: 24px 0 8px; padding-left: 18px;
+    border-left: 2px solid #8e8e93;
+  }
+
+  /* ACHIEVEMENT LIST */
+  .achievement-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 24px; }
+  .achievement-item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 14px;
+    background: rgba(0,0,0,0.03);
+    border: 0.5px solid rgba(0,0,0,0.08);
+    border-radius: 8px;
+  }
+  .achievement-icon { font-size: 18px; flex-shrink: 0; }
+  .achievement-title { font-size: 13px; font-weight: 600; color: #1d1d1f; line-height: 1.3; }
+  .achievement-sub { font-size: 12px; color: #86868b; margin-top: 2px; }
+
+  /* PRESS WINDOW */
+  .press-outlet {
+    font-size: 11px; text-transform: uppercase;
+    letter-spacing: 0.08em; color: #86868b; margin-bottom: 4px;
+  }
+  .press-featured {
+    display: block; text-decoration: none; color: inherit;
+    padding: 14px 16px;
+    background: #fff;
+    border: 0.5px solid rgba(0,0,0,0.08);
+    border-radius: 8px; transition: box-shadow 0.15s, background 0.15s;
+  }
+  .press-featured:hover { background: #fff; box-shadow: 0 4px 16px rgba(0,0,0,0.08); }
+  .press-featured-meta {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 6px;
+  }
+  .press-featured-date { font-size: 11px; color: #86868b; font-variant-numeric: tabular-nums; }
+  .press-featured-arrow { font-size: 11px; color: #86868b; opacity: 0; transition: opacity 0.15s; }
+  .press-featured:hover .press-featured-arrow { opacity: 1; }
+  .press-featured-headline { font-size: 15px; font-weight: 500; color: #1d1d1f; line-height: 1.4; }
+  .press-year { font-size: 11px; font-weight: 600; color: rgba(0,0,0,0.25); padding: 10px 0 4px; letter-spacing: 0.04em; }
+  .press-row {
+    display: flex; align-items: baseline; gap: 12px;
+    padding: 9px 8px; margin: 0 -8px;
+    border-bottom: 0.5px solid rgba(0,0,0,0.06);
+    text-decoration: none; color: inherit;
+    border-radius: 4px; transition: background 0.1s;
+  }
+  .press-row:hover { background: rgba(0,0,0,0.03); }
+  .press-row:last-child { border-bottom: none; }
+  .press-row-date { font-size: 11px; color: #86868b; min-width: 72px; flex-shrink: 0; font-variant-numeric: tabular-nums; }
+  .press-row-outlet { font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: #86868b; min-width: 140px; flex-shrink: 0; }
+  .press-row-headline { font-size: 13px; color: #1d1d1f; flex: 1; line-height: 1.4; }
+  .press-row-arrow { font-size: 11px; color: #86868b; flex-shrink: 0; opacity: 0; transition: opacity 0.1s; }
+  .press-row:hover .press-row-arrow { opacity: 1; }
+
+  /* CONTACT WINDOW */
+  .contact-row {
+    display: flex; align-items: center; gap: 16px;
+    padding: 14px 0;
+    border-bottom: 0.5px solid rgba(0,0,0,0.06);
+  }
+  .contact-row:last-child { border-bottom: none; }
+  .contact-icon {
+    width: 36px; height: 36px;
+    border-radius: 8px;
+    background: rgba(0,0,0,0.05);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+  }
+  .contact-label {
+    font-size: 11px;
+    color: #86868b;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .contact-value {
+    font-size: 15px;
+    color: #1d1d1f;
+    font-weight: 500;
+  }
+  .contact-value a { color: #1d1d1f; text-decoration: none; }
+  .contact-value a:hover { color: #0a84ff; }
+
+  /* TERMINAL */
+  #terminal-window .window-body {
+    background: rgba(10,10,12,0.95);
+    font-family: 'JetBrains Mono', 'SF Mono', Menlo, monospace;
+    font-size: 13px;
+    padding: 18px 20px;
+    line-height: 1.55;
+  }
+  .terminal-line { margin-bottom: 2px; word-wrap: break-word; }
+  .terminal-prompt { color: #50fa7b; }
+  .terminal-user { color: #ff79c6; }
+  .terminal-output { color: rgba(255,255,255,0.85); }
+  .terminal-output.dim { color: rgba(255,255,255,0.5); }
+  .terminal-output.accent { color: #8be9fd; }
+  .terminal-input-line {
+    display: flex; align-items: center;
+    margin-top: 6px;
+  }
+  .terminal-input-line .prompt-prefix {
+    color: #50fa7b;
+    margin-right: 8px;
+  }
+  #terminal-input {
+    background: transparent;
+    border: none;
+    outline: none;
+    color: #fff;
+    font-family: inherit;
+    font-size: 13px;
+    flex: 1;
+    caret-color: #50fa7b;
+  }
+  #terminal-cursor {
+    display: inline-block;
+    width: 8px; height: 14px;
+    background: #50fa7b;
+    animation: blink 1s infinite;
+    vertical-align: middle;
+    margin-left: 2px;
+  }
+  @keyframes blink {
+    0%, 50% { opacity: 1; }
+    51%, 100% { opacity: 0; }
+  }
+  .terminal-thinking {
+    color: rgba(255,255,255,0.4);
+    font-style: italic;
+  }
+
+  /* DOCK */
+  #dock {
+    position: fixed;
+    bottom: 8px;
+    left: 50%; transform: translateX(-50%);
+    background: rgba(255,255,255,0.5);
+    backdrop-filter: blur(40px) saturate(180%);
+    -webkit-backdrop-filter: blur(40px) saturate(180%);
+    border: 0.5px solid rgba(0,0,0,0.08);
+    border-radius: 18px;
+    padding: 6px;
+    display: flex; align-items: flex-end; gap: 4px;
+    z-index: 500;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+  }
+  .dock-icon {
+    width: 52px; height: 52px;
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 500;
+    cursor: pointer;
+    transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.2);
+    position: relative;
+  }
+  .dock-icon:hover { transform: translateY(-8px) scale(1.15); }
+  .dock-icon.has-window::after {
+    content: '';
+    position: absolute;
+    bottom: -7px;
+    left: 50%; transform: translateX(-50%);
+    width: 4px; height: 4px;
+    background: rgba(0,0,0,0.4);
+    border-radius: 50%;
+  }
+  .dock-icon.minimized-window::after {
+    background: rgba(0,0,0,0.2);
+  }
+  .dock-divider {
+    width: 1px; height: 40px;
+    background: rgba(0,0,0,0.1);
+    margin: 0 4px;
+    align-self: center;
+  }
+
+  /* APP COLORS */
+  .app-checkrx { background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%); color: white; }
+  .app-candor { background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%); color: white; }
+  .app-ypc { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white; }
+  .app-ypclabs { background: linear-gradient(135deg, #ec4899 0%, #be185d 100%); color: white; }
+  .app-press { background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%); color: white; }
+  .app-contact { background: linear-gradient(135deg, #10b981 0%, #047857 100%); color: white; }
+  .app-about { background: linear-gradient(135deg, #6366f1 0%, #4338ca 100%); color: white; }
+  .app-holm { background: linear-gradient(135deg, #1f2937 0%, #111827 100%); color: white; border: 0.5px solid rgba(255,255,255,0.2); }
+  .app-terminal { background: linear-gradient(135deg, #18181b 0%, #09090b 100%); color: #50fa7b; font-family: 'JetBrains Mono', monospace; font-size: 18px; border: 0.5px solid rgba(255,255,255,0.15); }
+
+  /* APPLE MENU DROPDOWN */
+  #apple-menu {
+    position: fixed;
+    top: 28px; left: 8px;
+    background: rgba(255,255,255,0.88);
+    backdrop-filter: blur(30px);
+    border: 0.5px solid rgba(0,0,0,0.1);
+    border-radius: 8px;
+    padding: 4px;
+    min-width: 220px;
+    display: none;
+    z-index: 999;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.12);
+  }
+  #apple-menu.open { display: block; }
+  .apple-menu-item {
+    padding: 6px 12px;
+    font-size: 13px;
+    color: #1d1d1f;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  .apple-menu-item:hover {
+    background: #0a84ff;
+    color: white;
+  }
+  .apple-menu-divider {
+    height: 0.5px;
+    background: rgba(0,0,0,0.1);
+    margin: 4px 0;
+  }
+
+  /* MOBILE */
+  @media (max-width: 768px) {
+    #desktop-icons { display: none; }
+    .window { min-width: 90vw; max-width: 90vw; left: 5vw !important; }
+    .stat-grid { grid-template-columns: 1fr; }
+    .dock-icon { width: 44px; height: 44px; }
+    #spotlight-box { width: 90vw; }
+  }
+
+  /* SPOTLIGHT */
+  #spotlight-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.25);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    z-index: 2000;
+    display: none;
+    align-items: flex-start;
+    justify-content: center;
+    padding-top: 15vh;
+  }
+  #spotlight-overlay.open { display: flex; }
+  #spotlight-box {
+    width: 620px;
+    background: rgba(255,255,255,0.82);
+    backdrop-filter: blur(40px) saturate(180%);
+    -webkit-backdrop-filter: blur(40px) saturate(180%);
+    border: 0.5px solid rgba(0,0,0,0.1);
+    border-radius: 12px;
+    box-shadow: 0 30px 60px rgba(0,0,0,0.2);
+    overflow: hidden;
+  }
+  #spotlight-search-row {
+    display: flex; align-items: center;
+    padding: 12px 16px; gap: 10px;
+    border-bottom: 0.5px solid rgba(0,0,0,0.08);
+  }
+  #spotlight-search-row .search-icon { font-size: 16px; color: #86868b; flex-shrink: 0; }
+  #spotlight-input {
+    flex: 1;
+    background: transparent;
+    border: none; outline: none;
+    font-family: inherit;
+    font-size: 17px;
+    color: #1d1d1f;
+    caret-color: #0a84ff;
+  }
+  #spotlight-input::placeholder { color: #86868b; }
+  .spotlight-hint {
+    font-size: 11px; color: #86868b;
+    background: rgba(0,0,0,0.06);
+    border: 0.5px solid rgba(0,0,0,0.1);
+    border-radius: 4px;
+    padding: 2px 6px;
+    flex-shrink: 0;
+    font-family: inherit;
+  }
+  #spotlight-results { max-height: 360px; overflow-y: auto; padding: 6px 0; }
+  .spotlight-result {
+    display: flex; align-items: center; gap: 12px;
+    padding: 9px 16px;
+    cursor: pointer;
+    transition: background 0.1s;
+  }
+  .spotlight-result:hover, .spotlight-result.focused {
+    background: #0a84ff;
+    color: white;
+  }
+  .spotlight-result:hover .sr-sub,
+  .spotlight-result.focused .sr-sub { color: rgba(255,255,255,0.7); }
+  .sr-icon {
+    width: 30px; height: 30px;
+    border-radius: 7px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px;
+    font-weight: 500;
+    flex-shrink: 0;
+  }
+  .sr-title { font-size: 13px; font-weight: 500; }
+  .sr-sub { font-size: 11px; color: #86868b; }
+
+  /* WINDOW ANIMATIONS */
+  @keyframes windowOpen {
+    from { opacity: 0; transform: scale(0.92); }
+    to   { opacity: 1; transform: scale(1); }
+  }
+  @keyframes windowClose {
+    from { opacity: 1; transform: scale(1); }
+    to   { opacity: 0; transform: scale(0.92); }
+  }
+  .window-opening {
+    animation: windowOpen 0.18s cubic-bezier(0.34, 1.2, 0.64, 1) forwards;
+  }
+  .window-closing {
+    animation: windowClose 0.14s ease-in forwards;
+    pointer-events: none;
+  }
+  .window-minimizing {
+    transition: transform 0.28s cubic-bezier(0.4, 0, 1, 1), opacity 0.28s ease !important;
+  }
+
+  /* ACTIVE WINDOW */
+  .window { opacity: 0.92; }
+  .window.window-active {
+    opacity: 1;
+    box-shadow: 0 30px 60px -12px rgba(0,0,0,0.22), 0 0 0 0.5px rgba(0,0,0,0.08);
+  }
+  .window.window-active .window-titlebar {
+    background: rgba(255,255,255,0.72);
+  }
+</style>
+</head>
+<body>
+
+<!-- BOOT -->
+<div id="boot-screen">
+  <div id="boot-logo">⌘</div>
+  <div id="boot-name">The Holm Group</div>
+  <div id="boot-bar-container"><div id="boot-bar"></div></div>
+</div>
+
+<!-- WALLPAPER -->
+<div id="desktop-bg"><div id="wallpaper-inner"></div></div>
+
+<!-- MENU BAR -->
+<div id="menu-bar">
+  <div class="menu-item logo" onclick="toggleAppleMenu(event)">⌘</div>
+  <div class="menu-item bold">Holm Group</div>
+  <div class="menu-item">File</div>
+  <div class="menu-item">Edit</div>
+  <div class="menu-item">View</div>
+  <div class="menu-item">Window</div>
+  <div class="menu-item">Help</div>
+  <div id="menu-right">
+    <div class="menu-item" onclick="openSpotlight()" style="font-size:11px;color:#86868b;letter-spacing:0.02em;">⌘K</div>
+    <div class="menu-item" id="clock">Loading…</div>
+  </div>
+</div>
+
+<!-- APPLE MENU -->
+<div id="apple-menu">
+  <div class="apple-menu-item" onclick="openApp('about'); closeAppleMenu();">About Augustus</div>
+  <div class="apple-menu-item" onclick="openApp('holm'); closeAppleMenu();">About The Holm Group</div>
+  <div class="apple-menu-divider"></div>
+  <div class="apple-menu-item" onclick="openApp('contact'); closeAppleMenu();">Get in touch…</div>
+  <div class="apple-menu-divider"></div>
+  <div class="apple-menu-item" onclick="closeAllWindows(); closeAppleMenu();">Close all windows</div>
+</div>
+
+<!-- SPOTLIGHT -->
+<div id="spotlight-overlay">
+  <div id="spotlight-box">
+    <div id="spotlight-search-row">
+      <span class="search-icon">🔍</span>
+      <input type="text" id="spotlight-input" placeholder="Search apps, ventures, press…" autocomplete="off" autocorrect="off" spellcheck="false">
+      <span class="spotlight-hint">⌘K</span>
+    </div>
+    <div id="spotlight-results"></div>
+  </div>
+</div>
+
+<!-- DESKTOP ICONS -->
+<div id="desktop-icons">
+  <div class="desktop-icon" ondblclick="openApp('about')" onclick="selectIcon(this)">
+    <div class="desktop-icon-img app-about"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg></div>
+    <div class="desktop-icon-label">About Me</div>
+  </div>
+  <div class="desktop-icon" ondblclick="openApp('holm')" onclick="selectIcon(this)">
+    <div class="desktop-icon-img app-holm"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round"><line x1="6" y1="4" x2="6" y2="20"/><line x1="18" y1="4" x2="18" y2="20"/><line x1="6" y1="12" x2="18" y2="12"/></svg></div>
+    <div class="desktop-icon-label">The Holm Group</div>
+  </div>
+  <div class="desktop-icon" ondblclick="openApp('press')" onclick="selectIcon(this)">
+    <div class="desktop-icon-img app-press"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21V5a2 2 0 0 1 2-2h11l5 5v13a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="16 3 16 8 21 8"/><line x1="7" y1="12" x2="17" y2="12"/><line x1="7" y1="16" x2="14" y2="16"/></svg></div>
+    <div class="desktop-icon-label">Press</div>
+  </div>
+</div>
+
+<!-- WINDOWS -->
+<div class="window" id="window-checkrx" style="top: 80px; left: 100px; width: 560px; height: 540px;">
+  <div class="window-titlebar" onmousedown="startDrag(event, 'window-checkrx')">
+    <div class="window-button close">×</div>
+    <div class="window-button minimize">−</div>
+    <div class="window-button maximize">+</div>
+    <div class="window-title">CheckRx</div>
+  </div>
+  <div class="window-body">
+    <div class="venture-header">
+      <div class="venture-logo app-checkrx"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="10" rx="5"/><line x1="12" y1="7" x2="12" y2="17"/><polyline points="14 13 15.5 14.5 19 11"/></svg></div>
+      <div>
+        <div class="venture-name">CheckRx</div>
+        <div class="venture-tagline">A Medicare research lab simplifying Medicare for seniors</div>
+      </div>
+    </div>
+    <div class="stat-grid">
+      <div class="stat-card">
+        <div class="stat-label">Founded</div>
+        <div class="stat-value">January 2023</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Capital Raised</div>
+        <div class="stat-value">$1.5M</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">People Helped</div>
+        <div class="stat-value">20,000+ seniors</div>
+      </div>
+    </div>
+    <div class="venture-about">
+      CheckRx is a Medicare research lab focused on simplifying Medicare for seniors. We build market intelligence tools, conduct policy reform research, run field studies with seniors, and design software that makes Medicare easier to navigate — for health plans, agencies, seniors directly, and eventually government.
+    </div>
+    <a href="https://checkrx.com" target="_blank" class="venture-cta">Visit checkrx.com →</a>
+  </div>
+</div>
+
+<div class="window" id="window-candor" style="top: 110px; left: 140px; width: 560px; height: 540px;">
+  <div class="window-titlebar" onmousedown="startDrag(event, 'window-candor')">
+    <div class="window-button close">×</div>
+    <div class="window-button minimize">−</div>
+    <div class="window-button maximize">+</div>
+    <div class="window-title">Candor</div>
+  </div>
+  <div class="window-body">
+    <div class="venture-header">
+      <div class="venture-logo app-candor"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><line x1="7" y1="9" x2="17" y2="9"/><line x1="7" y1="13" x2="17" y2="13"/><line x1="7" y1="17" x2="13" y2="17"/></svg></div>
+      <div>
+        <div class="venture-name">Candor</div>
+        <div class="venture-tagline">An AI-native Medicare agency</div>
+      </div>
+    </div>
+    <div class="stat-grid">
+      <div class="stat-card">
+        <div class="stat-label">Stage</div>
+        <div class="stat-value">Pre-seed</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Founded</div>
+        <div class="stat-value">June 2026</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Launch</div>
+        <div class="stat-value">Q3 2026</div>
+      </div>
+    </div>
+    <div class="venture-about">
+      Candor is an AI-native Medicare agency built to strip out the fixed costs that keep traditional brick-and-mortar brokerages from scaling. Seniors enroll through AI agents or human agents — whichever they prefer — while every agent on the platform is equipped with a full suite of AI tools. The goal: a brokerage that serves seniors better at a fraction of the operational cost.
+    </div>
+    <a href="https://candorinsurance.us" target="_blank" class="venture-cta">Visit candorinsurance.us →</a>
+  </div>
+</div>
+
+<div class="window" id="window-ypc" style="top: 140px; left: 180px; width: 560px; height: 540px;">
+  <div class="window-titlebar" onmousedown="startDrag(event, 'window-ypc')">
+    <div class="window-button close">×</div>
+    <div class="window-button minimize">−</div>
+    <div class="window-button maximize">+</div>
+    <div class="window-title">YPC</div>
+  </div>
+  <div class="window-body">
+    <div class="venture-header">
+      <div class="venture-logo app-ypc"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="22" x2="12" y2="11"/><path d="M12 11 C10 9 7 7 7 4 C10 3 13 7 12 11"/><path d="M12 14 C14 12 17 10 20 11 C20 14 17 17 12 14"/></svg></div>
+      <div>
+        <div class="venture-name">Youth Philanthropy Council</div>
+        <div class="venture-tagline">Youth-led philanthropy at national scale</div>
+      </div>
+    </div>
+    <div class="stat-grid">
+      <div class="stat-card">
+        <div class="stat-label">Founded</div>
+        <div class="stat-value">2019</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Capital Raised</div>
+        <div class="stat-value">$3.3M</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Lives Impacted</div>
+        <div class="stat-value">40,000+</div>
+      </div>
+    </div>
+    <div class="venture-about">
+      YPC is a youth-led nonprofit empowering the next generation to lead philanthropy at scale. From a Guinness World Record shoe drive to building schools abroad to raising over $1M for community health clinics, YPC mobilizes 5,000 members across the country to turn youth energy into measurable impact.
+    </div>
+    <div style="margin-top: 20px; margin-bottom: 20px;">
+      <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: rgba(255,255,255,0.5); margin-bottom: 10px;">Achievements</div>
+      <div class="achievement-list">
+        <div class="achievement-item">
+          <div class="achievement-icon">🏆</div>
+          <div>
+            <div class="achievement-title">Guinness World Record</div>
+            <div class="achievement-sub">Most shoes donated in 24 hours</div>
+          </div>
+        </div>
+        <div class="achievement-item">
+          <div class="achievement-icon">🏛️</div>
+          <div>
+            <div class="achievement-title">Outstanding Philanthropic Institution</div>
+            <div class="achievement-sub">AFP, 2024</div>
+          </div>
+        </div>
+        <div class="achievement-item">
+          <div class="achievement-icon">🏫</div>
+          <div>
+            <div class="achievement-title">3 schools built</div>
+            <div class="achievement-sub">Global Classroom Initiative</div>
+          </div>
+        </div>
+        <div class="achievement-item">
+          <div class="achievement-icon">🎗️</div>
+          <div>
+            <div class="achievement-title">$1M+ raised</div>
+            <div class="achievement-sub">SYH 55th Anniversary Gala</div>
+          </div>
+        </div>
+        <div class="achievement-item">
+          <div class="achievement-icon">👥</div>
+          <div>
+            <div class="achievement-title">5,000 members nationwide</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <a href="https://ypc.care" target="_blank" class="venture-cta">Visit ypc.care →</a>
+  </div>
+</div>
+
+<div class="window" id="window-ypclabs" style="top: 170px; left: 220px; width: 560px; height: 540px;">
+  <div class="window-titlebar" onmousedown="startDrag(event, 'window-ypclabs')">
+    <div class="window-button close">×</div>
+    <div class="window-button minimize">−</div>
+    <div class="window-button maximize">+</div>
+    <div class="window-title">YPC Labs</div>
+  </div>
+  <div class="window-body">
+    <div class="venture-header">
+      <div class="venture-logo app-ypclabs"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3h8M10 3v6L5 17a2 2 0 0 0 1.7 3h10.6a2 2 0 0 0 1.7-3L14 9V3"/><line x1="5.5" y1="15" x2="18.5" y2="15"/><line x1="12" y1="17" x2="12" y2="19"/><line x1="11" y1="18" x2="13" y2="18"/></svg></div>
+      <div>
+        <div class="venture-name">YPC Labs</div>
+        <div class="venture-tagline">The most equitable teenage entrepreneurship competition in the US</div>
+      </div>
+    </div>
+    <div class="stat-grid">
+      <div class="stat-card">
+        <div class="stat-label">Stage</div>
+        <div class="stat-value">Pre-launch</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Founded</div>
+        <div class="stat-value">May 2026</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Parent Org</div>
+        <div class="stat-value">YPC</div>
+      </div>
+    </div>
+    <div class="venture-about">
+      YPC Labs is building what aims to be the largest-by-prize-pool and most equitable teenage entrepreneurship competition in the United States. Too many teen competitions reward kids who already have the network, resources, and access that come with the top 10% of schools — overlooking founders with equal or stronger ideas but less polish. YPC Labs is built for them. An initiative of YPC.
+    </div>
+    <a href="https://ypclabs.org" target="_blank" class="venture-cta">Visit ypclabs.org →</a>
+  </div>
+</div>
+
+<div class="window" id="window-press" style="top: 100px; left: 160px; width: 720px; height: 640px;">
+  <div class="window-titlebar" onmousedown="startDrag(event, 'window-press')">
+    <div class="window-button close">×</div>
+    <div class="window-button minimize">−</div>
+    <div class="window-button maximize">+</div>
+    <div class="window-title">Press</div>
+  </div>
+  <div class="window-body">
+    <div style="margin-bottom: 20px;">
+      <div style="font-size: 22px; font-weight: 600; margin-bottom: 6px;">Press &amp; Media</div>
+      <div style="font-size: 13px; color: rgba(255,255,255,0.55);">Selected coverage</div>
+    </div>
+
+    <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:rgba(255,255,255,0.5);margin-bottom:12px;">Featured</div>
+    <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:32px;">
+
+      <a href="https://www.entrepreneur.com/entrepreneurs/checkrx-is-making-medicare-manageable-for-seniors" target="_blank" rel="noopener noreferrer" class="press-featured">
+        <div class="press-featured-meta">
+          <div class="press-outlet">Entrepreneur</div>
+          <div style="display:flex;align-items:center;gap:8px;"><div class="press-featured-date">May 2026</div><div class="press-featured-arrow">↗</div></div>
+        </div>
+        <div class="press-featured-headline">CheckRx Is Making Medicare Manageable for Seniors</div>
+      </a>
+
+      <a href="https://www.theguardian.com/us-news/2024/dec/24/augustus-holm-san-diego-shoe-drive-world-record" target="_blank" rel="noopener noreferrer" class="press-featured">
+        <div class="press-featured-meta">
+          <div class="press-outlet">The Guardian</div>
+          <div style="display:flex;align-items:center;gap:8px;"><div class="press-featured-date">Dec 2024</div><div class="press-featured-arrow">↗</div></div>
+        </div>
+        <div class="press-featured-headline">Augustus Holm San Diego shoe drive world record</div>
+      </a>
+
+      <a href="https://www.guinnessworldrecords.com/world-records/109959-most-shoes-donated-to-charity-in-24-hours" target="_blank" rel="noopener noreferrer" class="press-featured">
+        <div class="press-featured-meta">
+          <div class="press-outlet">Guinness World Records</div>
+          <div style="display:flex;align-items:center;gap:8px;"><div class="press-featured-date">Dec 2024</div><div class="press-featured-arrow">↗</div></div>
+        </div>
+        <div class="press-featured-headline">Most shoes donated to charity in 24 hours</div>
+      </a>
+
+      <a href="https://www.sandiegouniontribune.com/2024/07/24/someone-san-diego-should-know-augustus-holm/" target="_blank" rel="noopener noreferrer" class="press-featured">
+        <div class="press-featured-meta">
+          <div class="press-outlet">San Diego Union-Tribune</div>
+          <div style="display:flex;align-items:center;gap:8px;"><div class="press-featured-date">Jul 2024</div><div class="press-featured-arrow">↗</div></div>
+        </div>
+        <div class="press-featured-headline">Someone San Diego Should Know: Augustus Holm</div>
+      </a>
+
+      <a href="https://www.forbes.com/sites/pklein/2025/08/15/gen-z-founders-writing-a-new-playbook-for-business/" target="_blank" rel="noopener noreferrer" class="press-featured">
+        <div class="press-featured-meta">
+          <div class="press-outlet">Forbes</div>
+          <div style="display:flex;align-items:center;gap:8px;"><div class="press-featured-date">Aug 2025</div><div class="press-featured-arrow">↗</div></div>
+        </div>
+        <div class="press-featured-headline">Gen Z Founders Writing a New Playbook for Business</div>
+      </a>
+
+      <a href="https://globalyouth.wharton.upenn.edu/articles/future-of-the-business-world-podcast/kicking-off-a-gap-year-with-a-world-record-and-an-angel-investor/" target="_blank" rel="noopener noreferrer" class="press-featured">
+        <div class="press-featured-meta">
+          <div class="press-outlet">Wharton / Penn Global Youth</div>
+          <div style="display:flex;align-items:center;gap:8px;"><div class="press-featured-date">Dec 2024</div><div class="press-featured-arrow">↗</div></div>
+        </div>
+        <div class="press-featured-headline">Kicking Off a Gap Year With a World Record and an Angel Investor</div>
+      </a>
+
+      <a href="https://www.cbsnews.com/losangeles/video/app-founder-explains-why-and-how-he-started-the-senior-medicare-healthcare-assistance-program/" target="_blank" rel="noopener noreferrer" class="press-featured">
+        <div class="press-featured-meta">
+          <div class="press-outlet">CBS News LA</div>
+          <div style="display:flex;align-items:center;gap:8px;"><div class="press-featured-date">Oct 2025</div><div class="press-featured-arrow">↗</div></div>
+        </div>
+        <div class="press-featured-headline">App Founder Explains Why and How He Started the Senior Medicare Healthcare Assistance Program</div>
+      </a>
+
+      <a href="https://upfront.scholastic.com/issues/2024-25/031025/q-a-corner-giving-away-21000-pairs-of-shoes.html?language=english" target="_blank" rel="noopener noreferrer" class="press-featured">
+        <div class="press-featured-meta">
+          <div class="press-outlet">Scholastic Upfront</div>
+          <div style="display:flex;align-items:center;gap:8px;"><div class="press-featured-date">Mar 2025</div><div class="press-featured-arrow">↗</div></div>
+        </div>
+        <div class="press-featured-headline">Q&amp;A Corner: Giving Away 21,000 Pairs of Shoes</div>
+      </a>
+
+    </div>
+
+    <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:rgba(255,255,255,0.5);margin-bottom:8px;">All Coverage</div>
+
+    <div class="press-year">2026</div>
+    <a href="https://www.entrepreneur.com/entrepreneurs/checkrx-is-making-medicare-manageable-for-seniors" target="_blank" rel="noopener noreferrer" class="press-row">
+      <div class="press-row-date">May 2026</div><div class="press-row-outlet">Entrepreneur</div><div class="press-row-headline">CheckRx Is Making Medicare Manageable for Seniors</div><div class="press-row-arrow">↗</div>
+    </a>
+    <a href="https://www.sdbj.com/wp-content/uploads/2026/03/SDBJ-Power-20-2026.pdf" target="_blank" rel="noopener noreferrer" class="press-row">
+      <div class="press-row-date">Apr 2026</div><div class="press-row-outlet">San Diego BJ</div><div class="press-row-headline">Power 20 2026</div><div class="press-row-arrow">↗</div>
+    </a>
+
+    <div class="press-year">2025</div>
+    <a href="https://www.cbsnews.com/losangeles/video/app-founder-explains-why-and-how-he-started-the-senior-medicare-healthcare-assistance-program/" target="_blank" rel="noopener noreferrer" class="press-row">
+      <div class="press-row-date">Oct 2025</div><div class="press-row-outlet">CBS News LA</div><div class="press-row-headline">App Founder Explains the Senior Medicare Healthcare Assistance Program</div><div class="press-row-arrow">↗</div>
+    </a>
+    <a href="https://patch.com/california/san-diego/classifieds/announcements/510588/eo-san-diego-announces-winner-of-the-2025-global-student-entrepreneur-awards-gsea-competition" target="_blank" rel="noopener noreferrer" class="press-row">
+      <div class="press-row-date">Oct 2025</div><div class="press-row-outlet">Patch</div><div class="press-row-headline">EO San Diego Announces Winner of 2025 GSEA Competition</div><div class="press-row-arrow">↗</div>
+    </a>
+    <a href="https://www.sandiegouniontribune.com/2025/02/18/la-jolla-news-nuggets-appeal-postponed-50-years-at-salk-prozac-study-gillispie-blood-drive-more/" target="_blank" rel="noopener noreferrer" class="press-row">
+      <div class="press-row-date">Oct 2025</div><div class="press-row-outlet">SD Union-Tribune</div><div class="press-row-headline">La Jolla News Nuggets</div><div class="press-row-arrow">↗</div>
+    </a>
+    <a href="https://www.sandiego.edu/news/detail.php?_focus=95499" target="_blank" rel="noopener noreferrer" class="press-row">
+      <div class="press-row-date">Oct 2025</div><div class="press-row-outlet">Univ. of San Diego</div><div class="press-row-headline">USD News Feature</div><div class="press-row-arrow">↗</div>
+    </a>
+    <a href="https://www.forbes.com/sites/pklein/2025/08/15/gen-z-founders-writing-a-new-playbook-for-business/" target="_blank" rel="noopener noreferrer" class="press-row">
+      <div class="press-row-date">Aug 2025</div><div class="press-row-outlet">Forbes</div><div class="press-row-headline">Gen Z Founders Writing a New Playbook for Business</div><div class="press-row-arrow">↗</div>
+    </a>
+    <a href="https://www.sandiegometro.com/wp-content/uploads/2025/05/proof-SD-METRO-NO-3-VOL-40.pdf" target="_blank" rel="noopener noreferrer" class="press-row">
+      <div class="press-row-date">May 2025</div><div class="press-row-outlet">San Diego Metro</div><div class="press-row-headline">40 Under 40 (Youngest Nominee)</div><div class="press-row-arrow">↗</div>
+    </a>
+    <a href="https://www.10news.com/lifestyle/leadership/youth-philanthropy-council-raises-millions-for-those-in-need-since-2019" target="_blank" rel="noopener noreferrer" class="press-row">
+      <div class="press-row-date">Mar 2025</div><div class="press-row-outlet">ABC10 News</div><div class="press-row-headline">Youth Philanthropy Council Raises Millions Since 2019</div><div class="press-row-arrow">↗</div>
+    </a>
+    <a href="https://upfront.scholastic.com/issues/2024-25/031025/q-a-corner-giving-away-21000-pairs-of-shoes.html?language=english" target="_blank" rel="noopener noreferrer" class="press-row">
+      <div class="press-row-date">Mar 2025</div><div class="press-row-outlet">Scholastic Upfront</div><div class="press-row-headline">Giving Away 21,000 Pairs of Shoes</div><div class="press-row-arrow">↗</div>
+    </a>
+    <a href="https://www.sandiegouniontribune.com/2025/01/06/teens-break-world-record-giving-away-shoes-to-kids-in-need-in-san-diego/" target="_blank" rel="noopener noreferrer" class="press-row">
+      <div class="press-row-date">Jan 2025</div><div class="press-row-outlet">SD Union-Tribune</div><div class="press-row-headline">Teens Break World Record Giving Away Shoes</div><div class="press-row-arrow">↗</div>
+    </a>
+
+    <div class="press-year">2024</div>
+    <a href="https://www.theguardian.com/us-news/2024/dec/24/augustus-holm-san-diego-shoe-drive-world-record" target="_blank" rel="noopener noreferrer" class="press-row">
+      <div class="press-row-date">Dec 2024</div><div class="press-row-outlet">The Guardian</div><div class="press-row-headline">Augustus Holm San Diego Shoe Drive World Record</div><div class="press-row-arrow">↗</div>
+    </a>
+    <a href="https://www.guinnessworldrecords.com/world-records/109959-most-shoes-donated-to-charity-in-24-hours" target="_blank" rel="noopener noreferrer" class="press-row">
+      <div class="press-row-date">Dec 2024</div><div class="press-row-outlet">Guinness</div><div class="press-row-headline">Most Shoes Donated in 24 Hours</div><div class="press-row-arrow">↗</div>
+    </a>
+    <a href="https://globalyouth.wharton.upenn.edu/articles/future-of-the-business-world-podcast/kicking-off-a-gap-year-with-a-world-record-and-an-angel-investor/" target="_blank" rel="noopener noreferrer" class="press-row">
+      <div class="press-row-date">Dec 2024</div><div class="press-row-outlet">Wharton Global Youth</div><div class="press-row-headline">Kicking Off a Gap Year With a World Record and an Angel Investor</div><div class="press-row-arrow">↗</div>
+    </a>
+    <a href="https://www.sandiegouniontribune.com/2024/12/28/la-jolla-developed-app-valued-at-over-8m-is-set-to-expand-in-2025/" target="_blank" rel="noopener noreferrer" class="press-row">
+      <div class="press-row-date">Dec 2024</div><div class="press-row-outlet">SD Union-Tribune</div><div class="press-row-headline">La Jolla App Valued at Over $8M Set to Expand in 2025</div><div class="press-row-arrow">↗</div>
+    </a>
+    <a href="https://timesofsandiego.com/business/2024/12/15/san-diegos-ypc-to-launch-nations-largest-19-and-under-entrepreneurship-competition/" target="_blank" rel="noopener noreferrer" class="press-row">
+      <div class="press-row-date">Dec 2024</div><div class="press-row-outlet">Times of San Diego</div><div class="press-row-headline">YPC to Launch Nation's Largest 19-and-Under Entrepreneurship Competition</div><div class="press-row-arrow">↗</div>
+    </a>
+    <a href="https://timesofsandiego.com/life/2024/12/01/youth-council-aims-for-guinness-world-record-at-kearny-mesa-event/" target="_blank" rel="noopener noreferrer" class="press-row">
+      <div class="press-row-date">Dec 2024</div><div class="press-row-outlet">Times of San Diego</div><div class="press-row-headline">Youth Council Aims for Guinness World Record at Kearny Mesa Event</div><div class="press-row-arrow">↗</div>
+    </a>
+    <a href="https://www.sdbj.com/technology/startup-fills-prescription-needs/" target="_blank" rel="noopener noreferrer" class="press-row">
+      <div class="press-row-date">Dec 2024</div><div class="press-row-outlet">San Diego BJ</div><div class="press-row-headline">Startup Fills Prescription Needs</div><div class="press-row-arrow">↗</div>
+    </a>
+    <a href="https://www.prnewswire.com/news-releases/san-diego-teens-shatter-guinness-world-record-with-21-000-shoes-for-underserved-women-and-children-302318911.html" target="_blank" rel="noopener noreferrer" class="press-row">
+      <div class="press-row-date">Nov 2024</div><div class="press-row-outlet">PR Newswire</div><div class="press-row-headline">San Diego Teens Shatter Guinness World Record With 21,000 Shoes</div><div class="press-row-arrow">↗</div>
+    </a>
+    <a href="https://www.thinkadvisor.com/2024/11/12/app-uses-pill-bottles-to-look-up-medicare-drug-prices/" target="_blank" rel="noopener noreferrer" class="press-row">
+      <div class="press-row-date">Nov 2024</div><div class="press-row-outlet">ThinkAdvisor</div><div class="press-row-headline">App Uses Pill Bottles to Look Up Medicare Drug Prices</div><div class="press-row-arrow">↗</div>
+    </a>
+    <a href="https://www.sdbj.com/technology/software/17-year-old-launches-tool-for-medicare-beneficiaries/" target="_blank" rel="noopener noreferrer" class="press-row">
+      <div class="press-row-date">Nov 2024</div><div class="press-row-outlet">San Diego BJ</div><div class="press-row-headline">17-Year-Old Launches Tool for Medicare Beneficiaries</div><div class="press-row-arrow">↗</div>
+    </a>
+    <a href="https://www.thestarnews.com/volunteers-needed-to-break-world-record-holiday-drive/" target="_blank" rel="noopener noreferrer" class="press-row">
+      <div class="press-row-date">Nov 2024</div><div class="press-row-outlet">The Star News</div><div class="press-row-headline">Volunteers Needed to Break World Record Holiday Drive</div><div class="press-row-arrow">↗</div>
+    </a>
+    <a href="https://coronadotimes.com/news/2024/11/26/youth-philanthropy-council-to-host-st-nicks-kicks-dec-7-coronado-teens-welcome-to-volunteer/img_0006-4/" target="_blank" rel="noopener noreferrer" class="press-row">
+      <div class="press-row-date">Nov 2024</div><div class="press-row-outlet">Coronado Times</div><div class="press-row-headline">Youth Philanthropy Council to Host St. Nick's Kicks</div><div class="press-row-arrow">↗</div>
+    </a>
+    <a href="https://www.mediapost.com/publications/article/400336/checking-in-with-medicare-apps-teenage-developer.html" target="_blank" rel="noopener noreferrer" class="press-row">
+      <div class="press-row-date">Oct 2024</div><div class="press-row-outlet">MediaPost</div><div class="press-row-headline">Checking In With Medicare Apps: Teenage Developer</div><div class="press-row-arrow">↗</div>
+    </a>
+    <a href="https://gbsan.com/kids-helping-kids-ypc-and-san-ysidro-health-unite-for-care/" target="_blank" rel="noopener noreferrer" class="press-row">
+      <div class="press-row-date">Oct 2024</div><div class="press-row-outlet">GB San Diego</div><div class="press-row-headline">Kids Helping Kids: YPC and San Ysidro Health Unite for Care</div><div class="press-row-arrow">↗</div>
+    </a>
+    <a href="https://aiin.healthcare/topics/artificial-intelligence/artificial-intelligence-healthcare-industry-digest-blog" target="_blank" rel="noopener noreferrer" class="press-row">
+      <div class="press-row-date">Oct 2024</div><div class="press-row-outlet">AI in Healthcare</div><div class="press-row-headline">AI Healthcare Industry Digest</div><div class="press-row-arrow">↗</div>
+    </a>
+    <a href="https://coronadotimes.com/news/2024/09/01/age-is-but-a-number-kid-run-nonprofit-youth-philanthropy-council-defies-impossibility/" target="_blank" rel="noopener noreferrer" class="press-row">
+      <div class="press-row-date">Sep 2024</div><div class="press-row-outlet">Coronado Times</div><div class="press-row-headline">Age Is But a Number: Kid-Run Nonprofit Defies Impossibility</div><div class="press-row-arrow">↗</div>
+    </a>
+    <a href="https://sdvoyager.com/interview/exploring-life-business-with-augustus-holm-of-youth-philanthropy-council" target="_blank" rel="noopener noreferrer" class="press-row">
+      <div class="press-row-date">Sep 2024</div><div class="press-row-outlet">SD Voyager</div><div class="press-row-headline">Exploring Life &amp; Business With Augustus Holm of YPC</div><div class="press-row-arrow">↗</div>
+    </a>
+    <a href="https://umbrex.com/news-articles/an-introduction-to-leading-latinx-startup-founders/" target="_blank" rel="noopener noreferrer" class="press-row">
+      <div class="press-row-date">Aug 2024</div><div class="press-row-outlet">Umbrex</div><div class="press-row-headline">An Introduction to Leading Latinx Startup Founders</div><div class="press-row-arrow">↗</div>
+    </a>
+    <a href="https://fabulouscalifornia.com/philanthropy/nonprofit-of-the-month/nonprofit-of-the-month-youth-philanthropy-council/" target="_blank" rel="noopener noreferrer" class="press-row">
+      <div class="press-row-date">Aug 2024</div><div class="press-row-outlet">Fabulous California</div><div class="press-row-headline">Nonprofit of the Month: Youth Philanthropy Council</div><div class="press-row-arrow">↗</div>
+    </a>
+    <a href="https://www.sandiegouniontribune.com/2024/07/24/someone-san-diego-should-know-augustus-holm/" target="_blank" rel="noopener noreferrer" class="press-row">
+      <div class="press-row-date">Jul 2024</div><div class="press-row-outlet">SD Union-Tribune</div><div class="press-row-headline">Someone San Diego Should Know: Augustus Holm</div><div class="press-row-arrow">↗</div>
+    </a>
+    <a href="https://gbsan.com/may-2024/" target="_blank" rel="noopener noreferrer" class="press-row">
+      <div class="press-row-date">May 2024</div><div class="press-row-outlet">GB Magazine</div><div class="press-row-headline">Cover Feature, May 2024</div><div class="press-row-arrow">↗</div>
+    </a>
+
+    <div class="press-year">2023</div>
+    <a href="https://www.sandiegouniontribune.com/2023/10/26/la-jolla-student-develops-app-to-help-streamline-finding-a-medicare-plan/" target="_blank" rel="noopener noreferrer" class="press-row">
+      <div class="press-row-date">Oct 2023</div><div class="press-row-outlet">SD Union-Tribune</div><div class="press-row-headline">La Jolla Student Develops App to Help Streamline Finding a Medicare Plan</div><div class="press-row-arrow">↗</div>
+    </a>
+    <a href="https://gbsan.com/augustus-holm/" target="_blank" rel="noopener noreferrer" class="press-row">
+      <div class="press-row-date">Oct 2023</div><div class="press-row-outlet">GB San Diego</div><div class="press-row-headline">Augustus Holm Feature</div><div class="press-row-arrow">↗</div>
+    </a>
+
+    <div class="press-year">2022</div>
+    <a href="https://www.missionfed.com/news-stories/2020-national-philanthropy-day/" target="_blank" rel="noopener noreferrer" class="press-row">
+      <div class="press-row-date">Oct 2022</div><div class="press-row-outlet">Mission Fed / AFP</div><div class="press-row-headline">National Philanthropy Day Award</div><div class="press-row-arrow">↗</div>
+    </a>
+
+    <div class="press-year">2021</div>
+    <a href="https://fox5sandiego.com/news/local-news/st-nicks-kicks-shoes-given-to-families-in-need-at-event/" target="_blank" rel="noopener noreferrer" class="press-row">
+      <div class="press-row-date">Dec 2021</div><div class="press-row-outlet">Fox 5 San Diego</div><div class="press-row-headline">St. Nick's Kicks Shoes Given to Families in Need</div><div class="press-row-arrow">↗</div>
+    </a>
+
+    <div class="press-year">2019</div>
+    <a href="https://www.sandiegouniontribune.com/2019/08/29/a-50th-anniversary-fiesta/" target="_blank" rel="noopener noreferrer" class="press-row">
+      <div class="press-row-date">Aug 2019</div><div class="press-row-outlet">SD Union-Tribune</div><div class="press-row-headline">A 50th Anniversary Fiesta</div><div class="press-row-arrow">↗</div>
+    </a>
+
+  </div>
+</div>
+
+<div class="window" id="window-contact" style="top: 120px; left: 240px; width: 500px; height: 500px;">
+  <div class="window-titlebar" onmousedown="startDrag(event, 'window-contact')">
+    <div class="window-button close">×</div>
+    <div class="window-button minimize">−</div>
+    <div class="window-button maximize">+</div>
+    <div class="window-title">Contact</div>
+  </div>
+  <div class="window-body">
+    <div style="margin-bottom: 24px;">
+      <div style="font-size: 22px; font-weight: 600; margin-bottom: 6px;">Get in touch</div>
+      <div style="font-size: 13px; color: rgba(255,255,255,0.55);">For ventures, partnerships, and press.</div>
+    </div>
+    <div class="contact-row">
+      <div class="contact-icon">✉</div>
+      <div>
+        <div class="contact-label">Email</div>
+        <div class="contact-value"><a href="mailto:augustus.holm@checkrx.com">augustus.holm@checkrx.com</a></div>
+      </div>
+    </div>
+    <div class="contact-row">
+      <div class="contact-icon">☎</div>
+      <div>
+        <div class="contact-label">Phone</div>
+        <div class="contact-value"><a href="tel:+18582212772">+1 (858) 221-2772</a></div>
+      </div>
+    </div>
+    <div class="contact-row">
+      <div class="contact-icon">in</div>
+      <div>
+        <div class="contact-label">LinkedIn</div>
+        <div class="contact-value"><a href="https://www.linkedin.com/in/augustus-holm/" target="_blank" rel="noopener noreferrer">linkedin.com/in/augustus-holm</a></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="window" id="window-about" style="top: 70px; left: 130px; width: 580px; height: 540px;">
+  <div class="window-titlebar" onmousedown="startDrag(event, 'window-about')">
+    <div class="window-button close">×</div>
+    <div class="window-button minimize">−</div>
+    <div class="window-button maximize">+</div>
+    <div class="window-title">About Augustus</div>
+  </div>
+  <div class="window-body">
+    <div style="display: flex; align-items: center; gap: 20px; margin-bottom: 28px; padding-bottom: 20px; border-bottom: 0.5px solid rgba(255,255,255,0.1);">
+      <div class="venture-logo app-about" style="width: 80px; height: 80px; font-size: 28px;">A</div>
+      <div>
+        <div style="font-size: 24px; font-weight: 600;">Augustus Holm</div>
+        <div style="font-size: 13px; color: rgba(255,255,255,0.55); margin-top: 4px;">Founder, The Holm Group</div>
+      </div>
+    </div>
+    <p class="about-prose">I'm 20, born and raised in San Diego.</p>
+    <p class="about-prose">I started in healthcare because I grew up in it. My grandparents and parents worked in it, and I saw what it was capable of when it ran right and what it cost people when it didn't. The first time I really understood the problem I'm now spending my life on, I was 13, sitting at the kitchen table next to my grandmother — a Medicare agent — watching her work a 500-page prescription binder to figure out which plan was right for one of her clients. That image never left me.</p>
+    <p class="about-prose">YPC came first, started at 13. It's a youth-led nonprofit focused on healthcare and educational equity — originally just in San Diego, now globally. CheckRx came at 17. It focuses on seniors. Both start local and spread out from there, because everything I do has to be centered around one thing first: making San Diego a little bit better. I've lived here my whole life. If I'm going to live somewhere, I might as well try to leave it slightly better than I found it.</p>
+    <p class="about-prose">The Holm Group is the umbrella above the ventures — a place to consolidate the work I'm doing now and everything still to come. Much more to come.</p>
+    <p class="about-prose">When I'm not working I'm a stereotypical San Diegan. Burritos, surfing, hiking.</p>
+    <blockquote class="about-pullquote">The reason I do what I do is because I can, and it helps. I don't need more reason than that.</blockquote>
+  </div>
+</div>
+
+<div class="window" id="window-holm" style="top: 90px; left: 170px; width: 580px; height: 540px;">
+  <div class="window-titlebar" onmousedown="startDrag(event, 'window-holm')">
+    <div class="window-button close">×</div>
+    <div class="window-button minimize">−</div>
+    <div class="window-button maximize">+</div>
+    <div class="window-title">The Holm Group</div>
+  </div>
+  <div class="window-body">
+    <div style="display: flex; align-items: center; gap: 20px; margin-bottom: 28px; padding-bottom: 20px; border-bottom: 0.5px solid rgba(255,255,255,0.1);">
+      <div class="venture-logo app-holm" style="width: 80px; height: 80px; font-size: 28px;">H</div>
+      <div>
+        <div style="font-size: 24px; font-weight: 600;">The Holm Group</div>
+        <div style="font-size: 13px; color: rgba(255,255,255,0.55); margin-top: 4px;">Operating company &amp; venture umbrella</div>
+      </div>
+    </div>
+    <p class="about-prose">A San Diego–based operating company and venture umbrella.</p>
+    <p class="about-prose">On the operating side, Holm Group runs a full-service practice across accounting, property management, data analytics, strategic tax planning, payroll &amp; HR, and internal auditing — the unglamorous infrastructure businesses actually need to scale.</p>
+    <p class="about-prose">On the venture side, it's the umbrella behind CheckRx, Candor, YPC, and YPC Labs — with much more to come.</p>
+    <p class="about-prose">The throughline across both sides is the same: precision, operational discipline, and a bias toward building things that compound. Started in San Diego. Built to last.</p>
+    <a href="https://holmgrp.com" target="_blank" rel="noopener noreferrer" class="venture-cta" style="margin-bottom: 24px; display: inline-flex;">Operating services: holmgrp.com →</a>
+    <div style="margin-top: 24px;">
+      <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: rgba(255,255,255,0.5); margin-bottom: 12px;">Portfolio</div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+        <div onclick="openApp('checkrx')" style="display: flex; align-items: center; gap: 10px; padding: 10px; background: rgba(255,255,255,0.04); border-radius: 6px; cursor: pointer;">
+          <div class="venture-logo app-checkrx" style="width: 32px; height: 32px; font-size: 13px; border-radius: 8px;">Rx</div>
+          <div style="font-size: 13px;">CheckRx</div>
+        </div>
+        <div onclick="openApp('candor')" style="display: flex; align-items: center; gap: 10px; padding: 10px; background: rgba(255,255,255,0.04); border-radius: 6px; cursor: pointer;">
+          <div class="venture-logo app-candor" style="width: 32px; height: 32px; font-size: 13px; border-radius: 8px;">C</div>
+          <div style="font-size: 13px;">Candor</div>
+        </div>
+        <div onclick="openApp('ypc')" style="display: flex; align-items: center; gap: 10px; padding: 10px; background: rgba(255,255,255,0.04); border-radius: 6px; cursor: pointer;">
+          <div class="venture-logo app-ypc" style="width: 32px; height: 32px; font-size: 13px; border-radius: 8px;">Y</div>
+          <div style="font-size: 13px;">YPC</div>
+        </div>
+        <div onclick="openApp('ypclabs')" style="display: flex; align-items: center; gap: 10px; padding: 10px; background: rgba(255,255,255,0.04); border-radius: 6px; cursor: pointer;">
+          <div class="venture-logo app-ypclabs" style="width: 32px; height: 32px; font-size: 13px; border-radius: 8px;">L</div>
+          <div style="font-size: 13px;">YPC Labs</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TERMINAL -->
+<div class="window" id="window-terminal" style="top: 130px; left: 280px; width: 640px; height: 460px;">
+  <div class="window-titlebar" onmousedown="startDrag(event, 'window-terminal')">
+    <div class="window-button close">×</div>
+    <div class="window-button minimize">−</div>
+    <div class="window-button maximize">+</div>
+    <div class="window-title">augustus@holm — ~ — zsh</div>
+  </div>
+  <div class="window-body" id="terminal-body" onclick="document.getElementById('terminal-input').focus()">
+    <div id="terminal-output">
+      <div class="terminal-line terminal-output dim">Holm OS 1.0.0 — augustus@holm</div>
+      <div class="terminal-line terminal-output dim">Type <span class="terminal-output accent">help</span> for commands, or just ask a question.</div>
+      <div class="terminal-line">&nbsp;</div>
+    </div>
+    <div class="terminal-input-line">
+      <span class="prompt-prefix">augustus@holm ~ $</span>
+      <input type="text" id="terminal-input" autocomplete="off" autocorrect="off" spellcheck="false">
+    </div>
+  </div>
+</div>
+
+<!-- DOCK -->
+<div id="dock">
+  <div class="dock-icon app-about" onclick="openApp('about')" title="About Me"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg></div>
+  <div class="dock-icon app-holm" onclick="openApp('holm')" title="The Holm Group"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round"><line x1="6" y1="4" x2="6" y2="20"/><line x1="18" y1="4" x2="18" y2="20"/><line x1="6" y1="12" x2="18" y2="12"/></svg></div>
+  <div class="dock-divider"></div>
+  <div class="dock-icon app-checkrx" onclick="openApp('checkrx')" title="CheckRx"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="10" rx="5"/><line x1="12" y1="7" x2="12" y2="17"/><polyline points="14 13 15.5 14.5 19 11"/></svg></div>
+  <div class="dock-icon app-candor" onclick="openApp('candor')" title="Candor"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><line x1="7" y1="9" x2="17" y2="9"/><line x1="7" y1="13" x2="17" y2="13"/></svg></div>
+  <div class="dock-icon app-ypc" onclick="openApp('ypc')" title="YPC"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="22" x2="12" y2="11"/><path d="M12 11 C10 9 7 7 7 4 C10 3 13 7 12 11"/><path d="M12 14 C14 12 17 10 20 11 C20 14 17 17 12 14"/></svg></div>
+  <div class="dock-icon app-ypclabs" onclick="openApp('ypclabs')" title="YPC Labs"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3h8M10 3v6L5 17a2 2 0 0 0 1.7 3h10.6a2 2 0 0 0 1.7-3L14 9V3"/><line x1="5.5" y1="15" x2="18.5" y2="15"/><line x1="12" y1="17" x2="12" y2="19"/><line x1="11" y1="18" x2="13" y2="18"/></svg></div>
+  <div class="dock-divider"></div>
+  <div class="dock-icon app-terminal" onclick="openApp('terminal')" title="Terminal"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 9 9 12 4 15"/><line x1="12" y1="15" x2="20" y2="15"/></svg></div>
+  <div class="dock-divider"></div>
+  <div class="dock-icon app-press" onclick="openApp('press')" title="Press"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21V5a2 2 0 0 1 2-2h11l5 5v13a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="16 3 16 8 21 8"/><line x1="7" y1="12" x2="17" y2="12"/><line x1="7" y1="16" x2="14" y2="16"/></svg></div>
+  <div class="dock-icon app-contact" onclick="openApp('contact')" title="Contact"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></div>
+</div>
+
+<script>
+// ============ BOOT ============
+window.addEventListener('load', () => {
+  setTimeout(() => { document.getElementById('boot-bar').style.width = '100%'; }, 50);
+  setTimeout(() => {
+    const b = document.getElementById('boot-screen');
+    b.style.opacity = '0';
+    setTimeout(() => b.style.display = 'none', 100);
+  }, 700);
+});
+
+// ============ CLOCK ============
+function updateClock() {
+  const d = new Date();
+  const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  let h = d.getHours();
+  const m = d.getMinutes().toString().padStart(2,'0');
+  const ampm = h >= 12 ? 'PM' : 'AM';
+  h = h % 12 || 12;
+  document.getElementById('clock').textContent = `${days[d.getDay()]} ${h}:${m} ${ampm}`;
+}
+setInterval(updateClock, 10000);
+updateClock();
+
+// ============ APPLE MENU ============
+function toggleAppleMenu(e) {
+  e.stopPropagation();
+  document.getElementById('apple-menu').classList.toggle('open');
+}
+function closeAppleMenu() {
+  document.getElementById('apple-menu').classList.remove('open');
+}
+document.addEventListener('click', closeAppleMenu);
+
+// ============ WINDOW MANAGEMENT ============
+let zIndexCounter = 100;
+const openWindows = new Set();
+const minimizedWindows = new Map();
+const maximizedWindows = new Map();
+let activeWinName = null;
+
+function setActiveWindow(name) {
+  if (activeWinName) {
+    const prev = document.getElementById('window-' + activeWinName);
+    if (prev) prev.classList.remove('window-active');
+  }
+  activeWinName = name;
+  if (name) {
+    const win = document.getElementById('window-' + name);
+    if (win) win.classList.add('window-active');
+  }
+}
+
+function openApp(name) {
+  const win = document.getElementById('window-' + name);
+  if (!win) return;
+
+  if (minimizedWindows.has(name)) {
+    unminimizeWindow(name);
+    return;
+  }
+
+  if (openWindows.has(name)) {
+    win.style.zIndex = ++zIndexCounter;
+    setActiveWindow(name);
+    if (name === 'terminal') document.getElementById('terminal-input').focus();
+    return;
+  }
+
+  win.style.display = 'flex';
+  win.classList.add('window-opening');
+  win.style.zIndex = ++zIndexCounter;
+  openWindows.add(name);
+  setActiveWindow(name);
+  updateDockIndicators();
+
+  win.addEventListener('animationend', () => {
+    win.classList.remove('window-opening');
+    win.classList.add('active');
+    if (name === 'terminal') document.getElementById('terminal-input').focus();
+  }, { once: true });
+}
+
+function closeWindow(name) {
+  const win = document.getElementById('window-' + name);
+  if (!win) return;
+  win.classList.add('window-closing');
+  win.addEventListener('animationend', () => {
+    win.classList.remove('window-closing', 'active', 'window-active');
+    win.style.display = 'none';
+    openWindows.delete(name);
+    if (activeWinName === name) setActiveWindow(null);
+    updateDockIndicators();
+  }, { once: true });
+}
+
+function minimizeWindow(name) {
+  const win = document.getElementById('window-' + name);
+  if (!win || minimizedWindows.has(name)) return;
+  const dockIcon = document.querySelector(`.dock-icon[onclick*="${name}"]`);
+  const rect = win.getBoundingClientRect();
+  let tx = 0, ty = 0;
+  if (dockIcon) {
+    const dr = dockIcon.getBoundingClientRect();
+    tx = dr.left + dr.width / 2 - (rect.left + rect.width / 2);
+    ty = dr.top + dr.height / 2 - (rect.top + rect.height / 2);
+  }
+  win.classList.add('window-minimizing');
+  win.style.transform = `translate(${tx}px, ${ty}px) scale(0.08)`;
+  win.style.opacity = '0';
+  minimizedWindows.set(name, { transform: '', opacity: '' });
+  openWindows.delete(name);
+  if (activeWinName === name) setActiveWindow(null);
+  updateDockIndicators();
+  setTimeout(() => {
+    win.classList.remove('window-minimizing', 'active', 'window-active');
+    win.style.display = 'none';
+    win.style.transform = '';
+    win.style.opacity = '';
+  }, 300);
+}
+
+function unminimizeWindow(name) {
+  const win = document.getElementById('window-' + name);
+  if (!win) return;
+  minimizedWindows.delete(name);
+  win.style.display = 'flex';
+  win.classList.add('window-opening');
+  win.style.zIndex = ++zIndexCounter;
+  openWindows.add(name);
+  setActiveWindow(name);
+  updateDockIndicators();
+  win.addEventListener('animationend', () => {
+    win.classList.remove('window-opening');
+    win.classList.add('active');
+    if (name === 'terminal') document.getElementById('terminal-input').focus();
+  }, { once: true });
+}
+
+function maximizeWindow(name) {
+  const win = document.getElementById('window-' + name);
+  if (!win) return;
+  if (maximizedWindows.has(name)) {
+    const prev = maximizedWindows.get(name);
+    win.style.left = prev.left;
+    win.style.top = prev.top;
+    win.style.width = prev.width;
+    win.style.height = prev.height;
+    maximizedWindows.delete(name);
+  } else {
+    maximizedWindows.set(name, {
+      left: win.style.left, top: win.style.top,
+      width: win.style.width, height: win.style.height
+    });
+    win.style.left = '0';
+    win.style.top = '28px';
+    win.style.width = '100vw';
+    win.style.height = 'calc(100vh - 28px)';
+  }
+}
+
+function closeAllWindows() {
+  [...openWindows].forEach(n => closeWindow(n));
+}
+
+function updateDockIndicators() {
+  document.querySelectorAll('.dock-icon').forEach(icon => {
+    icon.classList.remove('has-window', 'minimized-window');
+  });
+  openWindows.forEach(name => {
+    const dockIcon = document.querySelector(`.dock-icon[onclick*="${name}"]`);
+    if (dockIcon) dockIcon.classList.add('has-window');
+  });
+  minimizedWindows.forEach((_, name) => {
+    const dockIcon = document.querySelector(`.dock-icon[onclick*="${name}"]`);
+    if (dockIcon) dockIcon.classList.add('has-window', 'minimized-window');
+  });
+}
+
+// Click on window brings to front
+document.addEventListener('mousedown', (e) => {
+  const win = e.target.closest('.window');
+  if (win) {
+    win.style.zIndex = ++zIndexCounter;
+    const name = win.id.replace('window-', '');
+    setActiveWindow(name);
+  }
+});
+
+// Stoplight button delegation
+document.addEventListener('click', (e) => {
+  const btn = e.target.closest('.window-button');
+  if (!btn) return;
+  const win = btn.closest('.window');
+  if (!win) return;
+  const name = win.id.replace('window-', '');
+  if (btn.classList.contains('close')) { e.stopPropagation(); closeWindow(name); }
+  else if (btn.classList.contains('minimize')) { e.stopPropagation(); minimizeWindow(name); }
+  else if (btn.classList.contains('maximize')) { e.stopPropagation(); maximizeWindow(name); }
+});
+
+// ============ DRAG ============
+let dragState = null;
+function startDrag(e, winId) {
+  if (e.target.classList.contains('window-button')) return;
+  const win = document.getElementById(winId);
+  const rect = win.getBoundingClientRect();
+  dragState = {
+    win, offsetX: e.clientX - rect.left, offsetY: e.clientY - rect.top
+  };
+  win.style.zIndex = ++zIndexCounter;
+  e.preventDefault();
+}
+document.addEventListener('mousemove', (e) => {
+  if (!dragState) return;
+  dragState.win.style.left = (e.clientX - dragState.offsetX) + 'px';
+  dragState.win.style.top = Math.max(28, e.clientY - dragState.offsetY) + 'px';
+});
+document.addEventListener('mouseup', () => { dragState = null; });
+
+// ============ ICON SELECTION ============
+let selectedIcon = null;
+function selectIcon(el) {
+  if (selectedIcon) selectedIcon.classList.remove('selected');
+  el.classList.add('selected');
+  selectedIcon = el;
+}
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('.desktop-icon')) {
+    if (selectedIcon) { selectedIcon.classList.remove('selected'); selectedIcon = null; }
+  }
+});
+
+// ============ TERMINAL ============
+const SITE_DATA = {
+  founder: {
+    name: "Augustus Holm",
+    age: 20,
+    location: "San Diego, California",
+    citizenship: ["United States", "Peru", "Sweden"],
+    role: "Founder, The Holm Group",
+    about: "20, born and raised in San Diego. Started in healthcare because I grew up in it — my grandmother was a Medicare agent. YPC came first at 13 (youth-led nonprofit, healthcare and educational equity). CheckRx came at 17 (Medicare for seniors). The Holm Group is the umbrella. Much more to come."
+  },
+  ventures: {
+    checkrx: {
+      name: "CheckRx",
+      tagline: "A Medicare research lab simplifying Medicare for seniors",
+      url: "checkrx.com",
+      raised: "$1.5M",
+      founded: "January 2023",
+      peopleHelped: "20,000+ seniors",
+      about: "CheckRx is a Medicare research lab focused on simplifying Medicare for seniors. We build market intelligence tools, conduct policy reform research, run field studies with seniors, and design software that makes Medicare easier to navigate — for health plans, agencies, seniors directly, and eventually government."
+    },
+    candor: {
+      name: "Candor",
+      tagline: "An AI-native Medicare agency",
+      url: "candorinsurance.us",
+      stage: "Pre-seed",
+      founded: "June 2026",
+      launch: "Q3 2026",
+      about: "Candor is an AI-native Medicare agency built to strip out the fixed costs that keep traditional brick-and-mortar brokerages from scaling. Seniors enroll through AI agents or human agents — whichever they prefer — while every agent on the platform is equipped with a full suite of AI tools. The goal: a brokerage that serves seniors better at a fraction of the operational cost."
+    },
+    ypc: {
+      name: "Youth Philanthropy Council",
+      tagline: "Youth-led philanthropy at national scale",
+      url: "ypc.care",
+      raised: "$3.3M",
+      founded: "2019",
+      peopleHelped: "40,000+ lives impacted",
+      about: "YPC is a youth-led nonprofit empowering the next generation to lead philanthropy at scale. From a Guinness World Record shoe drive to building schools abroad to raising over $1M for community health clinics, YPC mobilizes 5,000 members across the country to turn youth energy into measurable impact.",
+      achievements: [
+        { icon: "🏆", title: "Guinness World Record", sub: "Most shoes donated in 24 hours" },
+        { icon: "🏛️", title: "Outstanding Philanthropic Institution", sub: "AFP, 2024" },
+        { icon: "🏫", title: "3 schools built", sub: "Global Classroom Initiative" },
+        { icon: "🎗️", title: "$1M+ raised", sub: "SYH 55th Anniversary Gala" },
+        { icon: "👥", title: "5,000 members nationwide", sub: "" }
+      ]
+    },
+    ypclabs: {
+      name: "YPC Labs",
+      tagline: "The most equitable teenage entrepreneurship competition in the US",
+      url: "ypclabs.org",
+      stage: "Pre-launch",
+      founded: "May 2026",
+      parentOrg: "YPC",
+      about: "YPC Labs is building what aims to be the largest-by-prize-pool and most equitable teenage entrepreneurship competition in the United States. Too many teen competitions reward kids who already have the network, resources, and access that come with the top 10% of schools — overlooking founders with equal or stronger ideas but less polish. YPC Labs is built for them. An initiative of YPC."
+    }
+  },
+  contact: {
+    email: "augustus.holm@checkrx.com",
+    phone: "+1 (858) 221-2772",
+    linkedin: "linkedin.com/in/augustus-holm"
+  },
+  holmGroup: {
+    name: "The Holm Group",
+    tagline: "Operating company & venture umbrella",
+    services: ["Accounting", "Property Management", "Data Analytics", "Strategic Tax Planning", "Payroll & HR", "Internal Auditing"],
+    ventures: ["CheckRx", "Candor", "YPC", "YPC Labs"],
+    location: "San Diego",
+    operatingSiteUrl: "https://holmgrp.com",
+    about: "A San Diego–based operating company and venture umbrella. On the operating side: accounting, property management, data analytics, strategic tax planning, payroll & HR, and internal auditing. On the venture side: CheckRx, Candor, YPC, and YPC Labs. Precision, operational discipline, and a bias toward building things that compound. Started in San Diego. Built to last."
+  }
+};
+
+const COMMANDS = {
+  help: () => [
+    "Available commands:",
+    "  about          About Augustus",
+    "  ventures       List all ventures",
+    "  checkrx        Open CheckRx",
+    "  candor         Open Candor",
+    "  ypc            Open YPC",
+    "  ypclabs        Open YPC Labs",
+    "  press          Open Press",
+    "  contact        Contact info",
+    "  whoami         Quick identity",
+    "  clear          Clear terminal",
+    "",
+    "Or just ask a question in plain English."
+  ],
+  whoami: () => [`augustus_holm — ${SITE_DATA.founder.role}`],
+  about: () => { openApp('about'); return ["Opening About…"]; },
+  ventures: () => [
+    "Active ventures:",
+    "  CheckRx        " + SITE_DATA.ventures.checkrx.tagline,
+    "  Candor         " + SITE_DATA.ventures.candor.tagline,
+    "  YPC            " + SITE_DATA.ventures.ypc.tagline,
+    "  YPC Labs       " + SITE_DATA.ventures.ypclabs.tagline,
+    "",
+    "Type the name of any venture to open it."
+  ],
+  checkrx: () => { openApp('checkrx'); return ["Opening CheckRx…"]; },
+  candor: () => { openApp('candor'); return ["Opening Candor…"]; },
+  ypc: () => { openApp('ypc'); return ["Opening YPC…"]; },
+  ypclabs: () => { openApp('ypclabs'); return ["Opening YPC Labs…"]; },
+  press: () => { openApp('press'); return ["Opening Press…"]; },
+  contact: () => {
+    return [
+      "Email:    " + SITE_DATA.contact.email,
+      "Phone:    " + SITE_DATA.contact.phone,
+      "LinkedIn: " + SITE_DATA.contact.linkedin
+    ];
+  },
+  clear: () => {
+    document.getElementById('terminal-output').innerHTML =
+      '<div class="terminal-line terminal-output dim">Holm OS 1.0.0 — augustus@holm</div>' +
+      '<div class="terminal-line">&nbsp;</div>';
+    return [];
+  }
+};
+
+// Natural language fallback — keyword based
+function answerQuestion(q) {
+  const lower = q.toLowerCase();
+
+  if (/who.*you|who.*are.*you|tell.*about.*you|about.*augustus/i.test(lower)) {
+    return [
+      `${SITE_DATA.founder.name}, ${SITE_DATA.founder.age}. Based in ${SITE_DATA.founder.location}.`,
+      `Triple citizen: ${SITE_DATA.founder.citizenship.join(', ')}.`,
+      `Founder of The Holm Group. Type 'about' for more.`
+    ];
+  }
+  if (/why|story|origin|started|began/i.test(lower)) {
+    openApp('about');
+    return [SITE_DATA.founder.about];
+  }
+  if (/service|services|what does holm|what does the holm|what do you offer/i.test(lower)) {
+    return [
+      "Holm Group operating services:",
+      ...SITE_DATA.holmGroup.services.map(s => `  · ${s}`)
+    ];
+  }
+  if (/holm group|the holm|holdco|holding company|umbrella/i.test(lower)) {
+    openApp('holm');
+    return [
+      `${SITE_DATA.holmGroup.name} — ${SITE_DATA.holmGroup.tagline}.`,
+      SITE_DATA.holmGroup.about
+    ];
+  }
+  if (/checkrx|check rx|medicare/i.test(lower)) {
+    openApp('checkrx');
+    return [`CheckRx — ${SITE_DATA.ventures.checkrx.tagline}.`, `Raised ${SITE_DATA.ventures.checkrx.raised}.`];
+  }
+  if (/candor|insurance/i.test(lower)) {
+    openApp('candor');
+    return [
+      `Candor — ${SITE_DATA.ventures.candor.tagline}.`,
+      `Stage: ${SITE_DATA.ventures.candor.stage}. Launching ${SITE_DATA.ventures.candor.launch}.`
+    ];
+  }
+  if (/achievement|award|recognition|guinness/i.test(lower)) {
+    openApp('ypc');
+    const lines = ["YPC Achievements:"];
+    SITE_DATA.ventures.ypc.achievements.forEach(a => {
+      lines.push(`  ${a.icon} ${a.title}${a.sub ? ' — ' + a.sub : ''}`);
+    });
+    return lines;
+  }
+  if (/ypc labs|labs/i.test(lower)) {
+    openApp('ypclabs');
+    return [
+      `YPC Labs — ${SITE_DATA.ventures.ypclabs.tagline}.`,
+      `Stage: ${SITE_DATA.ventures.ypclabs.stage}. An initiative of ${SITE_DATA.ventures.ypclabs.parentOrg}.`
+    ];
+  }
+  if (/ypc|youth philanthropy|guinness|shoes/i.test(lower)) {
+    openApp('ypc');
+    return [`YPC — ${SITE_DATA.ventures.ypc.about}`];
+  }
+  if (/press|media|news|coverage|article/i.test(lower)) {
+    openApp('press');
+    return ["Opening Press…"];
+  }
+  if (/contact|email|reach|phone|linkedin/i.test(lower)) {
+    return [
+      "Email:    " + SITE_DATA.contact.email,
+      "Phone:    " + SITE_DATA.contact.phone,
+      "LinkedIn: " + SITE_DATA.contact.linkedin
+    ];
+  }
+  if (/age|old/i.test(lower)) return [`${SITE_DATA.founder.age} years old.`];
+  if (/where|location|based|live/i.test(lower)) return [`Based in ${SITE_DATA.founder.location}.`];
+  if (/citizen|nationality|passport/i.test(lower)) {
+    return [`Triple citizen: ${SITE_DATA.founder.citizenship.join(', ')}.`];
+  }
+  if (/raise|raised|funding|money|capital/i.test(lower)) {
+    return [
+      "Capital raised across ventures:",
+      `  CheckRx        ${SITE_DATA.ventures.checkrx.raised}`,
+      `  YPC            ${SITE_DATA.ventures.ypc.raised}`,
+      `  Candor         Pre-seed (${SITE_DATA.ventures.candor.launch} launch)`,
+      `  YPC Labs       Pre-launch (initiative of YPC)`
+    ];
+  }
+  if (/help|commands|what.*can/i.test(lower)) {
+    return COMMANDS.help();
+  }
+
+  return [
+    `Didn't catch that. Try typing 'help' for commands,`,
+    `or ask about CheckRx, Candor, YPC, YPC Labs, press, or contact.`
+  ];
+}
+
+function terminalPrint(lines, className = 'terminal-output') {
+  const out = document.getElementById('terminal-output');
+  lines.forEach(line => {
+    const div = document.createElement('div');
+    div.className = 'terminal-line ' + className;
+    div.innerHTML = line === '' || line === '&nbsp;' ? '&nbsp;' : line;
+    out.appendChild(div);
+  });
+  document.getElementById('terminal-body').scrollTop = document.getElementById('terminal-body').scrollHeight;
+}
+
+function handleTerminalCommand(input) {
+  const trimmed = input.trim();
+  if (!trimmed) return;
+
+  // Echo command
+  const out = document.getElementById('terminal-output');
+  const echo = document.createElement('div');
+  echo.className = 'terminal-line';
+  echo.innerHTML = `<span class="terminal-prompt">augustus@holm ~ $</span> <span class="terminal-user">${escapeHtml(trimmed)}</span>`;
+  out.appendChild(echo);
+
+  // Match command first
+  const cmd = trimmed.toLowerCase().split(/\s+/)[0];
+  let response;
+  if (COMMANDS[cmd]) {
+    response = COMMANDS[cmd]();
+  } else {
+    response = answerQuestion(trimmed);
+  }
+
+  terminalPrint(response);
+  terminalPrint(['&nbsp;']);
+}
+
+function escapeHtml(s) {
+  return s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
+}
+
+const commandHistory = [];
+let historyIndex = -1;
+
+document.getElementById('terminal-input').addEventListener('keydown', (e) => {
+  const input = e.target;
+  if (e.key === 'Enter') {
+    const val = input.value;
+    if (val.trim()) {
+      commandHistory.push(val);
+      historyIndex = commandHistory.length;
+    }
+    handleTerminalCommand(val);
+    input.value = '';
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    if (historyIndex > 0) {
+      historyIndex--;
+      input.value = commandHistory[historyIndex];
+    }
+  } else if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    if (historyIndex < commandHistory.length - 1) {
+      historyIndex++;
+      input.value = commandHistory[historyIndex];
+    } else {
+      historyIndex = commandHistory.length;
+      input.value = '';
+    }
+  }
+});
+
+// ============ SPOTLIGHT ============
+const APP_META = [
+  { name: 'checkrx',  label: 'CheckRx',              icon: 'Rx', cls: 'app-checkrx' },
+  { name: 'candor',   label: 'Candor',                icon: 'C',  cls: 'app-candor'  },
+  { name: 'ypc',      label: 'Youth Philanthropy Council', icon: 'Y', cls: 'app-ypc' },
+  { name: 'ypclabs',  label: 'YPC Labs',              icon: 'L',  cls: 'app-ypclabs' },
+  { name: 'press',    label: 'Press',                 icon: 'P',  cls: 'app-press'   },
+  { name: 'contact',  label: 'Contact',               icon: '✉',  cls: 'app-contact' },
+  { name: 'about',    label: 'About Me',              icon: 'A',  cls: 'app-about'   },
+  { name: 'holm',     label: 'The Holm Group',        icon: 'H',  cls: 'app-holm'    },
+  { name: 'terminal', label: 'Terminal',              icon: '>_', cls: 'app-terminal' },
+];
+
+function buildSearchIndex() {
+  const idx = [];
+  APP_META.forEach(app => {
+    idx.push({ type: 'app', name: app.name, label: app.label, sub: 'Open window', icon: app.icon, cls: app.cls });
+  });
+  const v = SITE_DATA.ventures;
+  Object.values(v).forEach(vent => {
+    idx.push({ type: 'fact', name: null, label: vent.name, sub: vent.tagline, icon: '🔗', cls: '' });
+  });
+  idx.push({ type: 'fact', name: 'contact', label: SITE_DATA.contact.email, sub: 'Email', icon: '✉', cls: 'app-contact' });
+  idx.push({ type: 'fact', name: 'contact', label: SITE_DATA.contact.phone, sub: 'Phone', icon: '📞', cls: 'app-contact' });
+  document.querySelectorAll('.press-featured-headline, .press-row-headline').forEach(el => {
+    const txt = el.textContent.trim();
+    if (txt) idx.push({ type: 'press', name: 'press', label: txt, sub: 'Press', icon: 'P', cls: 'app-press' });
+  });
+  return idx;
+}
+
+let searchIndex = null;
+let spotlightFocusIdx = -1;
+
+function fuzzySearch(query, idx) {
+  if (!query) return [];
+  const q = query.toLowerCase();
+  return idx
+    .map(item => {
+      const haystack = (item.label + ' ' + item.sub).toLowerCase();
+      const i = haystack.indexOf(q);
+      return i >= 0 ? { item, score: i } : null;
+    })
+    .filter(Boolean)
+    .sort((a, b) => a.score - b.score)
+    .slice(0, 8)
+    .map(r => r.item);
+}
+
+function renderSpotlightResults(results) {
+  const el = document.getElementById('spotlight-results');
+  if (!results.length) { el.innerHTML = ''; return; }
+  el.innerHTML = results.map((r, i) =>
+    `<div class="spotlight-result${i === spotlightFocusIdx ? ' focused' : ''}" data-idx="${i}">
+      <div class="sr-icon ${r.cls}">${r.icon}</div>
+      <div><div class="sr-title">${r.label}</div><div class="sr-sub">${r.sub}</div></div>
+    </div>`
+  ).join('');
+  el.querySelectorAll('.spotlight-result').forEach((row, i) => {
+    row.addEventListener('mousedown', (e) => {
+      e.preventDefault();
+      selectSpotlightResult(results[i]);
+    });
+  });
+}
+
+function selectSpotlightResult(item) {
+  closeSpotlight();
+  if (item.name) openApp(item.name);
+}
+
+function openSpotlight() {
+  if (!searchIndex) searchIndex = buildSearchIndex();
+  spotlightFocusIdx = -1;
+  const overlay = document.getElementById('spotlight-overlay');
+  overlay.classList.add('open');
+  const input = document.getElementById('spotlight-input');
+  input.value = '';
+  document.getElementById('spotlight-results').innerHTML = '';
+  setTimeout(() => input.focus(), 50);
+}
+
+function closeSpotlight() {
+  document.getElementById('spotlight-overlay').classList.remove('open');
+}
+
+document.getElementById('spotlight-input').addEventListener('input', (e) => {
+  spotlightFocusIdx = -1;
+  const results = fuzzySearch(e.target.value, searchIndex || buildSearchIndex());
+  renderSpotlightResults(results);
+});
+
+document.getElementById('spotlight-input').addEventListener('keydown', (e) => {
+  const el = document.getElementById('spotlight-results');
+  const rows = el.querySelectorAll('.spotlight-result');
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    spotlightFocusIdx = Math.min(spotlightFocusIdx + 1, rows.length - 1);
+    rows.forEach((r, i) => r.classList.toggle('focused', i === spotlightFocusIdx));
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    spotlightFocusIdx = Math.max(spotlightFocusIdx - 1, 0);
+    rows.forEach((r, i) => r.classList.toggle('focused', i === spotlightFocusIdx));
+  } else if (e.key === 'Enter') {
+    const query = e.target.value;
+    const results = fuzzySearch(query, searchIndex || buildSearchIndex());
+    const pick = spotlightFocusIdx >= 0 ? results[spotlightFocusIdx] : results[0];
+    if (pick) selectSpotlightResult(pick);
+    else closeSpotlight();
+  }
+});
+
+document.getElementById('spotlight-overlay').addEventListener('mousedown', (e) => {
+  if (e.target === document.getElementById('spotlight-overlay')) closeSpotlight();
+});
+
+// ============ KEYBOARD ============
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') { closeAppleMenu(); closeSpotlight(); }
+  if ((e.metaKey && e.key === 'k') || (e.ctrlKey && !e.metaKey && e.key === 'k')) { e.preventDefault(); openSpotlight(); }
+});
+</script>
+
+</body>
+</html>
