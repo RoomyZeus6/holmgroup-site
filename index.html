@@ -48,34 +48,36 @@
   /* BOOT SCREEN */
   #boot-screen {
     position: fixed; inset: 0;
-    background: #000;
+    background: #F5EFE0;
     z-index: 10000;
     display: flex; flex-direction: column;
     align-items: center; justify-content: center;
-    transition: opacity 0.1s ease;
+    transition: opacity 0.2s ease;
   }
-  #boot-logo {
-    font-size: 64px; font-weight: 200;
-    letter-spacing: -0.04em;
-    margin-bottom: 20px;
-    opacity: 0.95;
+  #boot-screen::after {
+    content: '';
+    position: absolute; inset: 0; pointer-events: none;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent 0, transparent 3px,
+      rgba(0,0,0,0.025) 3px, rgba(0,0,0,0.025) 4px
+    );
   }
-  #boot-name {
-    font-size: 12px;
-    color: rgba(255,255,255,0.45);
-    margin-bottom: 32px;
-    letter-spacing: 0.12em;
+  #boot-dots {
+    display: flex; gap: 16px;
+    margin-top: 40px;
   }
-  #boot-bar-container {
-    width: 240px; height: 2px;
-    background: rgba(255,255,255,0.08);
-    border-radius: 2px;
-    overflow: hidden;
+  .boot-dot {
+    width: 12px; height: 12px;
+    background: #1a1a1a;
+    image-rendering: pixelated;
+    animation: boot-bounce 0.6s ease-in-out infinite;
   }
-  #boot-bar {
-    width: 0%; height: 100%;
-    background: #fff;
-    transition: width 0.65s ease-out;
+  .boot-dot:nth-child(2) { animation-delay: 0.15s; }
+  .boot-dot:nth-child(3) { animation-delay: 0.3s; }
+  @keyframes boot-bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
   }
 
   /* MENU BAR */
@@ -726,9 +728,16 @@
 
 <!-- BOOT -->
 <div id="boot-screen">
-  <div id="boot-logo">⌘</div>
-  <div id="boot-name">The Holm Group</div>
-  <div id="boot-bar-container"><div id="boot-bar"></div></div>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 9 12" width="120" height="160" shape-rendering="crispEdges" style="display:block;margin:0 auto;">
+    <rect x="0" y="0" width="3" height="12" fill="#1a1a1a"/>
+    <rect x="6" y="0" width="3" height="12" fill="#1a1a1a"/>
+    <rect x="0" y="5" width="9" height="2" fill="#1a1a1a"/>
+  </svg>
+  <div id="boot-dots">
+    <div class="boot-dot"></div>
+    <div class="boot-dot"></div>
+    <div class="boot-dot"></div>
+  </div>
 </div>
 
 <!-- WALLPAPER -->
@@ -1488,13 +1497,11 @@
 <script>
 // ============ BOOT ============
 window.addEventListener('load', () => {
-  const mobile = window.innerWidth <= 768;
-  setTimeout(() => { document.getElementById('boot-bar').style.width = '100%'; }, 50);
   setTimeout(() => {
     const b = document.getElementById('boot-screen');
     b.style.opacity = '0';
-    setTimeout(() => b.style.display = 'none', 100);
-  }, mobile ? 500 : 700);
+    setTimeout(() => b.style.display = 'none', 200);
+  }, 1200);
 });
 
 // ============ CLOCK ============
