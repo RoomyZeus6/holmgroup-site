@@ -591,16 +591,18 @@
 
     #mobile-back {
       display: none;
-      position: fixed; top: 0; left: 0; right: 0;
-      height: 44px;
-      background: rgba(255,255,255,0.72);
-      backdrop-filter: blur(20px) saturate(180%);
-      align-items: center;
-      padding: 0 16px;
+      position: fixed; top: 12px; left: 12px;
+      width: 44px; height: 44px;
+      background: rgba(0,0,0,0.06);
+      border: 0.5px solid rgba(0,0,0,0.1);
+      border-radius: 50%;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      align-items: center; justify-content: center;
       z-index: 2001;
-      border-bottom: 0.5px solid rgba(0,0,0,0.08);
-      font-size: 14px; color: #0a84ff;
-      gap: 4px; cursor: pointer;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
     }
 
     body.has-open-app #mobile-home { display: none; }
@@ -609,13 +611,17 @@
 
     .window.mobile-fullscreen {
       position: fixed !important;
-      inset: 44px 0 0 0 !important;
+      inset: 0 !important;
       width: 100vw !important;
-      height: calc(100vh - 44px) !important;
+      height: 100vh !important;
       border-radius: 0 !important;
       min-width: unset !important;
+      z-index: 1001 !important;
     }
+    .window.active.mobile-fullscreen .window-titlebar { display: none; }
     .window:not(.mobile-fullscreen) { display: none !important; }
+
+    .venture-tagline, .window-subtitle { color: #1d1d1f !important; }
 
     .stat-grid { grid-template-columns: 1fr 1fr; }
     #spotlight-box { width: 90vw; }
@@ -1112,7 +1118,7 @@
   <div class="window-body">
     <div style="margin-bottom: 20px;">
       <div style="font-size: 22px; font-weight: 600; margin-bottom: 6px;">Press &amp; Media</div>
-      <div style="font-size: 13px; color: rgba(255,255,255,0.55);">Selected coverage</div>
+      <div class="window-subtitle" style="font-size: 13px; color: rgba(255,255,255,0.55);">Selected coverage</div>
     </div>
 
     <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:rgba(255,255,255,0.5);margin-bottom:12px;">Featured</div>
@@ -1324,7 +1330,7 @@
   <div class="window-body">
     <div style="margin-bottom: 24px;">
       <div style="font-size: 22px; font-weight: 600; margin-bottom: 6px;">Get in touch</div>
-      <div style="font-size: 13px; color: rgba(255,255,255,0.55);">For ventures, partnerships, and press.</div>
+      <div class="window-subtitle" style="font-size: 13px; color: rgba(255,255,255,0.55);">For ventures, partnerships, and press.</div>
     </div>
     <div class="contact-row">
       <div class="contact-icon">✉</div>
@@ -1362,7 +1368,7 @@
       <div class="venture-logo app-about" style="width: 80px; height: 80px; font-size: 28px;">A</div>
       <div>
         <div style="font-size: 24px; font-weight: 600;">Augustus Holm</div>
-        <div style="font-size: 13px; color: rgba(255,255,255,0.55); margin-top: 4px;">Founder, The Holm Group</div>
+        <div class="window-subtitle" style="font-size: 13px; color: rgba(255,255,255,0.55); margin-top: 4px;">Founder, The Holm Group</div>
       </div>
     </div>
     <p class="about-prose">I'm 20, born and raised in San Diego.</p>
@@ -1386,7 +1392,7 @@
       <div class="venture-logo app-holm" style="width: 80px; height: 80px; font-size: 28px;">H</div>
       <div>
         <div style="font-size: 24px; font-weight: 600;">The Holm Group</div>
-        <div style="font-size: 13px; color: rgba(255,255,255,0.55); margin-top: 4px;">Operating company &amp; venture umbrella</div>
+        <div class="window-subtitle" style="font-size: 13px; color: rgba(255,255,255,0.55); margin-top: 4px;">Operating company &amp; venture umbrella</div>
       </div>
     </div>
     <p class="about-prose">A San Diego–based operating company and venture umbrella.</p>
@@ -1490,8 +1496,7 @@
 
 <!-- MOBILE BACK BUTTON -->
 <div id="mobile-back" onclick="closeMobileApp()">
-  <svg width="8" height="14" viewBox="0 0 8 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="7 1 1 7 7 13"/></svg>
-  Back
+  <svg width="20" height="20" viewBox="0 0 12 12" fill="none" stroke="black" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="8 2 4 6 8 10"/></svg>
 </div>
 
 <script>
