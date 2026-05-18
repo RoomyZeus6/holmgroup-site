@@ -1552,7 +1552,7 @@ function renderHolm(app) {
       </div>
     </div>
     ${paras}
-    ${app.url ? `<a href="https://${app.url}" target="_blank" rel="noopener noreferrer" class="venture-cta" style="margin-bottom:24px;display:inline-flex;">Operating services: ${app.url} →</a>` : ''}`;
+    ${app.cta_url ? `<a href="${app.cta_url}" target="_blank" rel="noopener noreferrer" class="venture-cta" style="margin-bottom:24px;display:inline-flex;">${app.cta_label || 'Operating services →'}</a>` : ''}`;
 }
 
 function renderAbout(aboutRow) {
