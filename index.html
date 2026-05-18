@@ -1506,8 +1506,12 @@ function fmtDate(iso) {
 
 function renderVenture(app, achievements) {
   const appAch = achievements.filter(a => a.app_id === app.id);
-  const stats = (app.stats || []).map(s =>
-    `<div class="stat-card"><div class="stat-label">${s.label}</div><div class="stat-value">${s.value}</div></div>`
+  const stats = [
+    [app.stat1_label, app.stat1_value],
+    [app.stat2_label, app.stat2_value],
+    [app.stat3_label, app.stat3_value],
+  ].filter(([l]) => l).map(([l, v]) =>
+    `<div class="stat-card"><div class="stat-label">${l}</div><div class="stat-value">${v}</div></div>`
   ).join('');
   const achHTML = appAch.length ? `
     <div style="margin-top:20px;margin-bottom:20px;">
@@ -1534,7 +1538,7 @@ function renderVenture(app, achievements) {
     <div class="stat-grid">${stats}</div>
     <div class="venture-about">${app.about}</div>
     ${achHTML}
-    ${app.url ? `<a href="https://${app.url}" target="_blank" rel="noopener noreferrer" class="venture-cta">Visit ${app.url} →</a>` : ''}`;
+    ${app.cta_url ? `<a href="${app.cta_url}" target="_blank" rel="noopener noreferrer" class="venture-cta">${app.cta_label || 'Visit →'}</a>` : ''}`;
 }
 
 function renderHolm(app) {
@@ -1552,7 +1556,7 @@ function renderHolm(app) {
 }
 
 function renderAbout(aboutRow) {
-  const paras = (aboutRow.body || '').split('\n\n').map(p => `<p class="about-prose">${p}</p>`).join('');
+  const paras = (aboutRow.paragraphs || []).map(p => `<p class="about-prose">${p}</p>`).join('');
   return `
     <div style="display:flex;align-items:center;gap:20px;margin-bottom:28px;padding-bottom:20px;border-bottom:0.5px solid rgba(255,255,255,0.1);">
       <div class="venture-logo app-about" style="width:80px;height:80px;font-size:28px;display:flex;align-items:center;justify-content:center;">A</div>
@@ -1577,12 +1581,12 @@ function renderContact(c) {
 }
 
 function renderPress(pressItems) {
-  const featured = [...pressItems].sort((a, b) => a.display_order - b.display_order).filter(p => p.featured);
+  const featured = [...pressItems].filter(p => p.is_featured).sort((a, b) => a.display_order - b.display_order);
   const all = [...pressItems].sort((a, b) => b.date_published.localeCompare(a.date_published));
   const featuredHTML = featured.map(p => `
     <a href="${p.url}" target="_blank" rel="noopener noreferrer" class="press-featured">
       <div class="press-featured-meta">
-        <div class="press-outlet"><span class="press-wordmark${p.sans_serif ? ' sans' : ''}">${p.outlet}</span></div>
+        <div class="press-outlet"><span class="press-wordmark${p.wordmark_style === 'sans' ? ' sans' : ''}">${p.outlet}</span></div>
         <div style="display:flex;align-items:center;gap:8px;"><div class="press-featured-date">${fmtDate(p.date_published)}</div><div class="press-featured-arrow">↗</div></div>
       </div>
       <div class="press-featured-headline">${p.headline}</div>
