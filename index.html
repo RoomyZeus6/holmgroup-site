@@ -86,6 +86,30 @@
   .boot-blink { animation: blink-pulse 1s step-end infinite; }
   .boot-error { color: #cc2200; }
 
+  /* MARQUEE SELECTION */
+  #marquee-rect {
+    position: fixed; pointer-events: none; z-index: 500; display: none;
+    background: rgba(0,100,255,0.08);
+    border: 0.5px solid rgba(0,100,255,0.5);
+  }
+
+  /* DESKTOP CONTEXT MENU */
+  #desktop-context-menu {
+    position: fixed; display: none; z-index: 2000;
+    background: rgba(246,246,246,0.96);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    border: 0.5px solid rgba(0,0,0,0.1);
+    padding: 4px 0; min-width: 180px;
+    font-family: 'Inter'; font-size: 13px;
+  }
+  .ctx-item { padding: 7px 14px; cursor: default; user-select: none; color: #1d1d1f; }
+  .ctx-item:hover { background: rgba(0,0,0,0.06); }
+  .ctx-item.ctx-disabled { color: rgba(0,0,0,0.3); pointer-events: none; }
+  .ctx-divider { height: 1px; background: rgba(0,0,0,0.08); margin: 3px 0; }
+
   /* WELCOME SCREEN */
   #welcome-screen {
     position: fixed; inset: 0;
@@ -906,6 +930,9 @@
   </div>
 </div>
 
+<div id="marquee-rect"></div>
+<div id="desktop-context-menu"></div>
+
 <!-- MENU BAR -->
 <div id="menu-bar">
   <div class="menu-item logo" onclick="toggleAppleMenu(event)">⌘</div>
@@ -1713,7 +1740,12 @@ window.addEventListener('resize', applyIconPositions);
 
 // Icon drag
 let iconDrag = null;
-let selectedIcon = null;
+const selectedIcons = new Set();
+
+function deselectAll() {
+  selectedIcons.forEach(el => el.classList.remove('selected'));
+  selectedIcons.clear();
+}
 
 document.querySelectorAll('.desktop-icon[data-app]').forEach(el => {
   el.addEventListener('mousedown', (e) => {
@@ -1749,38 +1781,134 @@ document.addEventListener('mousemove', (e) => {
 });
 
 document.addEventListener('mouseup', () => {
-  if (!iconDrag) return;
-  iconDrag.el.classList.remove('dragging');
-  if (iconDrag.moved) {
-    const saved = loadIconPositions();
-    saved[iconDrag.el.dataset.app] = {
-      x: parseFloat(iconDrag.el.style.left),
-      y: parseFloat(iconDrag.el.style.top)
-    };
-    saveIconPositions(saved);
+  if (iconDrag) {
+    iconDrag.el.classList.remove('dragging');
+    if (iconDrag.moved) {
+      const saved = loadIconPositions();
+      saved[iconDrag.el.dataset.app] = {
+        x: parseFloat(iconDrag.el.style.left),
+        y: parseFloat(iconDrag.el.style.top)
+      };
+      saveIconPositions(saved);
+    }
+    iconDrag = null;
   }
-  iconDrag = null;
+  if (marquee) {
+    if (marquee.active) document.getElementById('marquee-rect').style.display = 'none';
+    marquee = null;
+  }
 });
 
 // Icon click = select; dblclick = open
 document.querySelectorAll('.desktop-icon[data-app]').forEach(el => {
   el.addEventListener('click', (e) => {
     if (iconDrag && iconDrag.moved) return;
-    if (selectedIcon) selectedIcon.classList.remove('selected');
-    el.classList.add('selected');
-    selectedIcon = el;
+    if (e.shiftKey) {
+      el.classList.add('selected'); selectedIcons.add(el);
+    } else if (e.metaKey || e.ctrlKey) {
+      if (selectedIcons.has(el)) { el.classList.remove('selected'); selectedIcons.delete(el); }
+      else { el.classList.add('selected'); selectedIcons.add(el); }
+    } else {
+      deselectAll(); el.classList.add('selected'); selectedIcons.add(el);
+    }
     e.stopPropagation();
   });
-  el.addEventListener('dblclick', (e) => {
-    openApp(el.dataset.app);
-  });
+  el.addEventListener('dblclick', () => openApp(el.dataset.app));
 });
 
 document.addEventListener('click', (e) => {
-  if (!e.target.closest('.desktop-icon')) {
-    if (selectedIcon) { selectedIcon.classList.remove('selected'); selectedIcon = null; }
+  if (!e.target.closest('.desktop-icon') && !e.target.closest('#desktop-context-menu')) {
+    deselectAll();
+  }
+  closeContextMenu();
+});
+
+// ============ MARQUEE SELECTION ============
+let marquee = null;
+
+document.addEventListener('mousedown', (e) => {
+  if (isMobile() || e.button !== 0) return;
+  if (e.target.closest('.desktop-icon')) return;
+  if (e.target.closest('.window, #menu-bar, #mobile-status-bar, .apple-menu, #desktop-context-menu, #spotlight, #hint-bar, #welcome-screen, #boot-screen')) return;
+  marquee = { startX: e.clientX, startY: e.clientY, active: false };
+});
+
+document.addEventListener('mousemove', (e) => {
+  if (!marquee) return;
+  const dx = Math.abs(e.clientX - marquee.startX);
+  const dy = Math.abs(e.clientY - marquee.startY);
+  if (!marquee.active && dx < 5 && dy < 5) return;
+  marquee.active = true;
+  const x = Math.min(e.clientX, marquee.startX);
+  const y = Math.min(e.clientY, marquee.startY);
+  const w = Math.abs(e.clientX - marquee.startX);
+  const h = Math.abs(e.clientY - marquee.startY);
+  const rect = document.getElementById('marquee-rect');
+  rect.style.display = 'block';
+  rect.style.left = x + 'px'; rect.style.top = y + 'px';
+  rect.style.width = w + 'px'; rect.style.height = h + 'px';
+  updateMarqueeSelection();
+});
+
+function updateMarqueeSelection() {
+  const mr = document.getElementById('marquee-rect').getBoundingClientRect();
+  document.querySelectorAll('.desktop-icon[data-app]').forEach(el => {
+    const ir = el.getBoundingClientRect();
+    const hits = !(ir.right < mr.left || ir.left > mr.right || ir.bottom < mr.top || ir.top > mr.bottom);
+    if (hits) { el.classList.add('selected'); selectedIcons.add(el); }
+    else       { el.classList.remove('selected'); selectedIcons.delete(el); }
+  });
+}
+
+// ============ CONTEXT MENU ============
+function closeContextMenu() {
+  const m = document.getElementById('desktop-context-menu');
+  m.style.display = 'none'; m.innerHTML = '';
+}
+
+function showContextMenu(x, y, items) {
+  const m = document.getElementById('desktop-context-menu');
+  m.innerHTML = items.map(item => {
+    if (item.divider) return '<div class="ctx-divider"></div>';
+    return `<div class="ctx-item${item.disabled ? ' ctx-disabled' : ''}"${item.action ? ` onclick="${item.action}"` : ''}>${item.label}</div>`;
+  }).join('');
+  m.style.display = 'block';
+  const mw = m.offsetWidth, mh = m.offsetHeight;
+  m.style.left = Math.min(x, window.innerWidth  - mw - 8) + 'px';
+  m.style.top  = Math.min(y, window.innerHeight - mh - 8) + 'px';
+}
+
+document.addEventListener('contextmenu', (e) => {
+  e.preventDefault();
+  if (isMobile()) return;
+  const icon = e.target.closest('.desktop-icon[data-app]');
+  if (icon) {
+    if (!selectedIcons.has(icon)) { deselectAll(); icon.classList.add('selected'); selectedIcons.add(icon); }
+    showContextMenu(e.clientX, e.clientY, [
+      { label: 'Open', action: 'selectedIcons.forEach(el=>openApp(el.dataset.app));closeContextMenu();' },
+      { label: 'Reset position', action: 'resetSelectedPositions();closeContextMenu();' },
+      { divider: true },
+      { label: 'Deselect all', action: 'deselectAll();closeContextMenu();' },
+    ]);
+  } else {
+    showContextMenu(e.clientX, e.clientY, [
+      { label: 'Reset desktop layout', action: 'resetDesktop();closeContextMenu();' },
+      { label: 'Clear selection', disabled: selectedIcons.size === 0, action: 'deselectAll();closeContextMenu();' },
+    ]);
   }
 });
+
+function resetSelectedPositions() {
+  const saved = loadIconPositions();
+  selectedIcons.forEach(el => {
+    const name = el.dataset.app;
+    const pos = getDefaultPos(name);
+    el.style.left = pos.x + 'px'; el.style.top = pos.y + 'px';
+    delete saved[name];
+  });
+  saveIconPositions(saved);
+  deselectAll();
+}
 
 // ============ SUPABASE DATA ============
 async function fetchSiteData() {
@@ -2347,7 +2475,7 @@ document.getElementById('spotlight-overlay').addEventListener('mousedown', (e) =
 
 // ============ KEYBOARD ============
 document.addEventListener('keydown', (e) => {
-  if (e.key === 'Escape') { closeAppleMenu(); closeSpotlight(); if (isMobile()) closeMobileApp(); }
+  if (e.key === 'Escape') { closeAppleMenu(); closeSpotlight(); closeContextMenu(); deselectAll(); if (isMobile()) closeMobileApp(); }
   if ((e.metaKey && e.key === 'k') || (e.ctrlKey && !e.metaKey && e.key === 'k')) { e.preventDefault(); openSpotlight(); }
 });
 
