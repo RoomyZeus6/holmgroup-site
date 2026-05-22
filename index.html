@@ -207,7 +207,10 @@
   }
   .desktop-icon:hover { background: rgba(0,0,0,0.06); }
   .desktop-icon.selected { background: rgba(70,130,255,0.2); }
-  .desktop-icon.dragging { opacity: 0.85; z-index: 50 !important; }
+  .desktop-icon.dragging { opacity: 0.85; z-index: 50 !important; transform: scale(1.05); }
+  .desktop-icon.dragging .desktop-icon-img {
+    box-shadow: 0 10px 28px rgba(0,0,0,0.38), inset 0 1px 0 rgba(255,255,255,0.2), 0 0 0 1.5px rgba(0,0,0,0.18);
+  }
   .desktop-icon-img {
     width: 56px; height: 56px;
     border-radius: 10px;
@@ -1751,15 +1754,34 @@ document.querySelectorAll('.desktop-icon[data-app]').forEach(el => {
   el.addEventListener('mousedown', (e) => {
     if (e.button !== 0) return;
     e.stopPropagation();
-    const rect = el.getBoundingClientRect();
-    iconDrag = {
-      el,
-      startX: e.clientX, startY: e.clientY,
-      offX: e.clientX - rect.left,
-      offY: e.clientY - rect.top,
-      moved: false,
-      raf: null
-    };
+    const isGroupDrag = selectedIcons.has(el) && selectedIcons.size > 1;
+    if (!isGroupDrag && !selectedIcons.has(el)) {
+      deselectAll();
+      el.classList.add('selected');
+      selectedIcons.add(el);
+    }
+    if (isGroupDrag) {
+      const startPositions = new Map();
+      selectedIcons.forEach(icon => {
+        startPositions.set(icon, {
+          x: parseFloat(icon.style.left),
+          y: parseFloat(icon.style.top)
+        });
+      });
+      iconDrag = {
+        el, startX: e.clientX, startY: e.clientY,
+        moved: false, raf: null,
+        group: true, startPositions
+      };
+    } else {
+      const rect = el.getBoundingClientRect();
+      iconDrag = {
+        el, startX: e.clientX, startY: e.clientY,
+        offX: e.clientX - rect.left, offY: e.clientY - rect.top,
+        moved: false, raf: null,
+        group: false
+      };
+    }
   });
 });
 
@@ -1768,28 +1790,69 @@ document.addEventListener('mousemove', (e) => {
   const dx = Math.abs(e.clientX - iconDrag.startX);
   const dy = Math.abs(e.clientY - iconDrag.startY);
   if (!iconDrag.moved && dx < 5 && dy < 5) return;
-  iconDrag.moved = true;
-  iconDrag.el.classList.add('dragging');
-  const nx = e.clientX - iconDrag.offX;
-  const ny = e.clientY - iconDrag.offY;
+  if (!iconDrag.moved) {
+    iconDrag.moved = true;
+    if (iconDrag.group) {
+      selectedIcons.forEach(icon => icon.classList.add('dragging'));
+    } else {
+      iconDrag.el.classList.add('dragging');
+    }
+  }
   if (iconDrag.raf) cancelAnimationFrame(iconDrag.raf);
-  iconDrag.raf = requestAnimationFrame(() => {
-    const pos = clampIconPos(nx, ny);
-    iconDrag.el.style.left = pos.x + 'px';
-    iconDrag.el.style.top  = pos.y + 'px';
-  });
+  if (iconDrag.group) {
+    const rawDx = e.clientX - iconDrag.startX;
+    const rawDy = e.clientY - iconDrag.startY;
+    const mw = window.innerWidth, mh = window.innerHeight;
+    let minDx = -Infinity, maxDx = Infinity, minDy = -Infinity, maxDy = Infinity;
+    iconDrag.startPositions.forEach(pos => {
+      minDx = Math.max(minDx, -pos.x);
+      maxDx = Math.min(maxDx, mw - 96 - pos.x);
+      minDy = Math.max(minDy, -pos.y);
+      maxDy = Math.min(maxDy, mh - 80 - pos.y);
+    });
+    const cdx = Math.max(minDx, Math.min(maxDx, rawDx));
+    const cdy = Math.max(minDy, Math.min(maxDy, rawDy));
+    iconDrag.raf = requestAnimationFrame(() => {
+      iconDrag.startPositions.forEach((pos, icon) => {
+        icon.style.left = (pos.x + cdx) + 'px';
+        icon.style.top  = (pos.y + cdy) + 'px';
+      });
+    });
+  } else {
+    const nx = e.clientX - iconDrag.offX;
+    const ny = e.clientY - iconDrag.offY;
+    iconDrag.raf = requestAnimationFrame(() => {
+      const pos = clampIconPos(nx, ny);
+      iconDrag.el.style.left = pos.x + 'px';
+      iconDrag.el.style.top  = pos.y + 'px';
+    });
+  }
 });
 
 document.addEventListener('mouseup', () => {
   if (iconDrag) {
-    iconDrag.el.classList.remove('dragging');
-    if (iconDrag.moved) {
-      const saved = loadIconPositions();
-      saved[iconDrag.el.dataset.app] = {
-        x: parseFloat(iconDrag.el.style.left),
-        y: parseFloat(iconDrag.el.style.top)
-      };
-      saveIconPositions(saved);
+    if (iconDrag.group) {
+      selectedIcons.forEach(icon => icon.classList.remove('dragging'));
+      if (iconDrag.moved) {
+        const saved = loadIconPositions();
+        selectedIcons.forEach(icon => {
+          saved[icon.dataset.app] = {
+            x: parseFloat(icon.style.left),
+            y: parseFloat(icon.style.top)
+          };
+        });
+        saveIconPositions(saved);
+      }
+    } else {
+      iconDrag.el.classList.remove('dragging');
+      if (iconDrag.moved) {
+        const saved = loadIconPositions();
+        saved[iconDrag.el.dataset.app] = {
+          x: parseFloat(iconDrag.el.style.left),
+          y: parseFloat(iconDrag.el.style.top)
+        };
+        saveIconPositions(saved);
+      }
     }
     iconDrag = null;
   }
