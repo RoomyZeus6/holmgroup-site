@@ -1794,7 +1794,11 @@ document.addEventListener('mouseup', () => {
     iconDrag = null;
   }
   if (marquee) {
-    if (marquee.active) document.getElementById('marquee-rect').style.display = 'none';
+    if (marquee.active) {
+      document.getElementById('marquee-rect').style.display = 'none';
+      _marqueeJustEnded = true;
+      setTimeout(() => { _marqueeJustEnded = false; }, 0);
+    }
     marquee = null;
   }
 });
@@ -1817,6 +1821,7 @@ document.querySelectorAll('.desktop-icon[data-app]').forEach(el => {
 });
 
 document.addEventListener('click', (e) => {
+  if (_marqueeJustEnded) return;
   if (!e.target.closest('.desktop-icon') && !e.target.closest('#desktop-context-menu')) {
     deselectAll();
   }
@@ -1825,6 +1830,7 @@ document.addEventListener('click', (e) => {
 
 // ============ MARQUEE SELECTION ============
 let marquee = null;
+let _marqueeJustEnded = false;
 
 document.addEventListener('mousedown', (e) => {
   if (isMobile() || e.button !== 0) return;
