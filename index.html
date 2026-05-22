@@ -2351,25 +2351,6 @@ document.addEventListener('keydown', (e) => {
   if ((e.metaKey && e.key === 'k') || (e.ctrlKey && !e.metaKey && e.key === 'k')) { e.preventDefault(); openSpotlight(); }
 });
 
-// ============ CURSOR PARALLAX ============
-(function() {
-  let mx = 0, my = 0, cx = 0, cy = 0;
-  const inner = document.getElementById('wallpaper-inner');
-  document.addEventListener('mousemove', (e) => {
-    mx = (e.clientX / window.innerWidth  - 0.5) * 2;
-    my = (e.clientY / window.innerHeight - 0.5) * 2;
-  });
-  function tick() {
-    if (!isMobile()) {
-      cx += (mx - cx) * 0.08;
-      cy += (my - cy) * 0.08;
-      inner.style.transform = `translate(${cx * -10}px, ${cy * -8}px)`;
-    }
-    requestAnimationFrame(tick);
-  }
-  requestAnimationFrame(tick);
-})();
-
 // ============ HINT BAR ============
 (function() {
   const bar = document.getElementById('hint-bar');
