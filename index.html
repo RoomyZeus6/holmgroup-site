@@ -84,6 +84,7 @@
     50% { opacity: 0; }
   }
   .boot-blink { animation: blink-pulse 1s step-end infinite; }
+  .boot-error { color: #cc2200; }
 
   /* WELCOME SCREEN */
   #welcome-screen {
@@ -1153,6 +1154,7 @@ let SITE_DATA = {};
 let _fetchResult = null, _fetchError = null, _fetchPromise = null;
 const _bootTimers = [];
 let _anyKeyAdvances = false;
+let _bootStart = 0;
 
 function _applyFetchResult() {
   if (_fetchError || !_fetchResult) return;
@@ -1199,11 +1201,6 @@ function _showWelcome() {
     ws.style.display = 'flex';
     ws.style.opacity = '0';
     requestAnimationFrame(() => requestAnimationFrame(() => { ws.style.opacity = '1'; }));
-    if (_fetchError) {
-      const btn = document.getElementById('welcome-enter-btn');
-      btn.textContent = "Couldn't load. Retry?";
-      btn.onclick = () => location.reload();
-    }
   }, 300);
 }
 
@@ -1221,54 +1218,136 @@ document.addEventListener('keydown', (e) => {
   }
 });
 
-const BOOT_LINES = [
-  { text: 'HOLM OS v1.0',                                            delay: 0 },
-  { text: 'Copyright (c) 2026 Augustus Holm',                        delay: 150 },
-  { text: '',                                                         delay: 350 },
-  { text: 'Detecting hardware...',                                    delay: 500 },
-  { text: '✓ CPU: 1x Augustus (single-core, overclocked)',            delay: 700 },
-  { text: '✓ Memory: 21 years installed',                             delay: 900 },
-  { text: '✓ Storage: ~36,000 hours of work logged',                  delay: 1100 },
-  { text: '✓ Network: San Diego (CA) — connection stable',       delay: 1350 },
-  { text: '',                                                         delay: 1600 },
-  { text: 'Loading modules...',                                       delay: 1750 },
-  { text: '✓ ventures.sys ............... [OK] 4 found',              delay: 1950 },
-  { text: '✓ press.sys .................. [OK] 35 articles',          delay: 2100 },
-  { text: '✓ achievements.sys ........... [OK] 5 records',            delay: 2250 },
-  { text: '✓ dreams.sys ................. [OK] too many to count',    delay: 2400 },
-  { text: '',                                                         delay: 2600 },
-  { text: 'Mounting filesystem... OK',                                delay: 2750 },
-  { text: 'Initializing UI... OK',                                    delay: 2950 },
-  { text: '',                                                         delay: 3150 },
-  { text: 'Boot complete. Press any key to continue.', blink: true,  delay: 3350 },
-];
+// ---- detection helpers ----
 
-window.addEventListener('load', () => {
-  // Kick off data fetch immediately, in parallel with boot animation
-  _fetchPromise = fetchSiteData()
-    .then(res => { _fetchResult = res; })
-    .catch(err => { _fetchError = err; console.error('fetchSiteData failed:', err); });
+function _detectOS() {
+  const ua = navigator.userAgent;
+  const pl = (navigator.userAgentData && navigator.userAgentData.platform) || navigator.platform || '';
+  if (/iPhone|iPad|iPod/.test(ua) || /iPhone|iPad/.test(pl)) return 'iOS';
+  if (/Android/.test(ua)) return 'Android';
+  if (/Mac/.test(pl) || /Mac OS X/.test(ua)) return 'macOS';
+  if (/Win/.test(pl) || /Windows/.test(ua)) return 'Windows';
+  if (/Linux/.test(pl) || /Linux/.test(ua)) return 'Linux';
+  return null;
+}
 
-  // Returning visitor this session — skip straight to desktop
-  if (sessionStorage.getItem('holm-booted')) {
-    document.getElementById('boot-screen').style.display = 'none';
-    _fetchPromise.then(() => _applyFetchResult());
+function _detectBrowser() {
+  const ua = navigator.userAgent;
+  let m;
+  if ((m = ua.match(/Edg\/([\d]+)/)))    return `Edge ${m[1]}`;
+  if ((m = ua.match(/OPR\/([\d]+)/)))    return `Opera ${m[1]}`;
+  if ((m = ua.match(/Chrome\/([\d]+)/))) return `Chrome ${m[1]}`;
+  if ((m = ua.match(/Firefox\/([\d]+)/)))return `Firefox ${m[1]}`;
+  if (/Safari\//.test(ua) && (m = ua.match(/Version\/([\d]+)/))) return `Safari ${m[1]}`;
+  return null;
+}
+
+function _detectColorGamut() {
+  if (window.matchMedia('(color-gamut: rec2020)').matches) return 'Rec2020';
+  if (window.matchMedia('(color-gamut: p3)').matches)      return 'P3';
+  if (window.matchMedia('(color-gamut: srgb)').matches)    return 'sRGB';
+  return null;
+}
+
+function _detectConnection() {
+  const c = navigator.connection;
+  if (!c) return null;
+  let s = c.effectiveType || '';
+  if (c.downlink) s += ` (downlink ~${c.downlink} Mbps)`;
+  return s || null;
+}
+
+function _detectArch(hi) {
+  if (!hi || !hi.architecture) return null;
+  const a = hi.architecture, b = hi.bitness;
+  if (a === 'arm') return b === '64' ? 'arm64' : 'arm';
+  if (a === 'x86') return b === '64' ? 'x86_64' : 'x86';
+  return a;
+}
+
+// ---- boot line builder ----
+
+function _buildBootLines(archInfo) {
+  const os      = _detectOS();
+  const browser = _detectBrowser();
+  const arch    = _detectArch(archInfo);
+  const cores   = navigator.hardwareConcurrency || null;
+  const mem     = navigator.deviceMemory || null;
+  const w = window.screen.width, h = window.screen.height;
+  const dpr     = window.devicePixelRatio || 1;
+  const gamut   = _detectColorGamut();
+  const scheme  = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'Dark' : 'Light';
+  const conn    = _detectConnection();
+  const tz      = Intl.DateTimeFormat().resolvedOptions().timeZone || null;
+  const lang    = navigator.language || null;
+
+  const slots = [
+    { delay: 0,    text: 'HOLM OS v1.0' },
+    { delay: 200,  text: `Boot initiated at ${new Date().toLocaleTimeString()}` },
+    { delay: 450,  text: '' },
+    { delay: 700,  text: 'Detecting system...' },
+    { delay: 950,  text: os      ? `✓ OS: ${os}`                          : null },
+    { delay: 1150, text: browser ? `✓ Browser: ${browser}`                : null },
+    { delay: 1350, text: arch    ? `✓ Architecture: ${arch}`              : null },
+    { delay: 1550, text: cores   ? `✓ Cores: ${cores} available`          : null },
+    { delay: 1750, text: mem     ? `✓ Memory: ~${mem} GB`                 : null },
+    { delay: 1950, text: `✓ Display: ${w}x${h} @ ${dpr}x` },
+    { delay: 2150, text: gamut   ? `✓ Color: ${gamut} gamut`              : null },
+    { delay: 2350, text: `✓ Color scheme: ${scheme} preference` },
+    { delay: 2600, text: '' },
+    { delay: 2850, text: 'Detecting network...' },
+    { delay: 3050, text: conn    ? `✓ Connection: ${conn}`                : null },
+    { delay: 3250, text: tz      ? `✓ Timezone: ${tz}`                    : null },
+    { delay: 3450, text: lang    ? `✓ Language: ${lang}`                  : null },
+    { delay: 3600, text: '' },
+    { delay: 3750, text: 'Loading content from supabase...' },
+  ];
+  return slots.filter(s => s.text !== null);
+}
+
+// ---- phase B (post-fetch) ----
+
+function _runPhaseB(container) {
+  const elapsed = Date.now() - _bootStart;
+  const wait = Math.max(3950 - elapsed, 0);
+
+  if (_fetchError) {
+    const errLines = [
+      { text: '✗ ventures.sys ......... [FAIL]',    offset: 0,   error: true },
+      { text: '✗ press.sys ............ [FAIL]',    offset: 180, error: true },
+      { text: '✗ achievements.sys ..... [FAIL]',    offset: 360, error: true },
+      { text: '',                                        offset: 540 },
+      { text: null /* retry button */,                   offset: 700, retry: true },
+    ];
+    errLines.forEach(({ text, offset, error, retry }) => {
+      _bootTimers.push(setTimeout(() => {
+        const line = document.createElement('div');
+        if (retry) {
+          line.style.color = '#cc2200';
+          line.innerHTML = 'Boot failed. <span style="text-decoration:underline;cursor:pointer;" onclick="location.reload()">Retry?</span>';
+        } else {
+          line.textContent = text;
+          if (error) line.classList.add('boot-error');
+        }
+        container.appendChild(line);
+      }, wait + offset));
+    });
     return;
   }
 
-  // Animate boot lines
-  const container = document.getElementById('boot-text');
-  const skipEl = document.getElementById('boot-skip');
-  document.addEventListener('keydown', _onBootKey);
-  document.getElementById('boot-screen').addEventListener('click', (e) => {
-    if (e.target.id === 'boot-skip') return;
-    if (_anyKeyAdvances) _showWelcome();
-  });
+  const res = _fetchResult;
+  const ventureCount = res.apps.filter(a => a.stat1_label).length;
+  const pressCount   = res.press.length;
+  const achCount     = res.achievements.length;
 
-  // Fade in skip button after 1200ms
-  _bootTimers.push(setTimeout(() => { skipEl.style.opacity = '1'; }, 1200));
-
-  BOOT_LINES.forEach(({ text, delay, blink }) => {
+  const lines = [
+    { text: `✓ ventures.sys ......... [OK] ${ventureCount} loaded`,  offset: 0 },
+    { text: `✓ press.sys ............ [OK] ${pressCount} loaded`,    offset: 180 },
+    { text: `✓ achievements.sys ..... [OK] ${achCount} loaded`,      offset: 360 },
+    { text: '',                                                            offset: 540 },
+    { text: 'Boot complete. Press any key to continue.', blink: true,     offset: 700 },
+  ];
+  lines.forEach(({ text, offset, blink }) => {
     _bootTimers.push(setTimeout(() => {
       const line = document.createElement('div');
       line.textContent = text;
@@ -1278,8 +1357,60 @@ window.addEventListener('load', () => {
         _anyKeyAdvances = true;
         _bootTimers.push(setTimeout(_showWelcome, 1000));
       }
+    }, wait + offset));
+  });
+}
+
+// ---- main load handler ----
+
+window.addEventListener('load', async () => {
+  // Start fetch immediately — runs in parallel with the entire boot animation
+  _fetchPromise = fetchSiteData()
+    .then(res  => { _fetchResult = res; })
+    .catch(err => { _fetchError  = err; console.error('fetchSiteData failed:', err); });
+
+  // Architecture detection — async but near-instant when supported; 200ms timeout
+  let archInfo = null;
+  if (navigator.userAgentData && navigator.userAgentData.getHighEntropyValues) {
+    try {
+      archInfo = await Promise.race([
+        navigator.userAgentData.getHighEntropyValues(['architecture', 'bitness']),
+        new Promise(r => setTimeout(() => r(null), 200)),
+      ]);
+    } catch(e) { /* unsupported — leave archInfo null */ }
+  }
+
+  // Returning visitor this session — skip boot entirely
+  if (sessionStorage.getItem('holm-booted')) {
+    document.getElementById('boot-screen').style.display = 'none';
+    _fetchPromise.then(() => _applyFetchResult());
+    return;
+  }
+
+  _bootStart = Date.now();
+  const container = document.getElementById('boot-text');
+  const skipEl    = document.getElementById('boot-skip');
+
+  document.addEventListener('keydown', _onBootKey);
+  document.getElementById('boot-screen').addEventListener('click', (e) => {
+    if (e.target.id === 'boot-skip') return;
+    if (_anyKeyAdvances) _showWelcome();
+  });
+
+  // Skip button fades in after 1200ms
+  _bootTimers.push(setTimeout(() => { skipEl.style.opacity = '1'; }, 1200));
+
+  // Schedule Phase A lines
+  _buildBootLines(archInfo).forEach(({ delay, text }) => {
+    _bootTimers.push(setTimeout(() => {
+      const line = document.createElement('div');
+      line.textContent = text;
+      container.appendChild(line);
     }, delay));
   });
+
+  // Phase B fires as soon as fetch resolves (timing clamped inside _runPhaseB)
+  _fetchPromise.then(() => _runPhaseB(container));
 });
 
 // ============ CLOCK ============
