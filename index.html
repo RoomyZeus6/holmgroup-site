@@ -86,6 +86,25 @@
   .boot-blink { animation: blink-pulse 1s step-end infinite; }
   .boot-error { color: #cc2200; }
 
+  /* WALLPAPER ANIMATIONS */
+  #scene-indicator { font-family: 'VT323', monospace; font-size: 15px; opacity: 0.7; padding: 0 2px; }
+  @keyframes twinkle {
+    0%, 100% { opacity: 1; }
+    50%       { opacity: 0.3; }
+  }
+  .star { animation: twinkle 2s ease-in-out infinite; }
+  @keyframes cloud-drift {
+    0%   { transform: translateX(0); }
+    100% { transform: translateX(190px); }
+  }
+  .cloud      { animation: cloud-drift 45s linear infinite; }
+  .cloud-slow { animation: cloud-drift 65s linear infinite; }
+  @keyframes sun-pulse {
+    0%, 100% { opacity: 0.88; transform: scale(1); }
+    50%       { opacity: 1;    transform: scale(1.05); }
+  }
+  .sun-glow { transform-box: fill-box; transform-origin: center; animation: sun-pulse 4s ease-in-out infinite; }
+
   /* MARQUEE SELECTION */
   #marquee-rect {
     position: fixed; pointer-events: none; z-index: 500; display: none;
@@ -831,106 +850,14 @@
     </svg>
     <div class="welcome-title">Hi, I'm Augustus</div>
     <div class="welcome-sub">Welcome to my corner of the internet.</div>
-    <div class="welcome-body">This is a personal site styled like an operating system. Everything I'm working on — ventures, writing, press — lives behind these icons. Click around.</div>
+    <div class="welcome-body">This is a personal site styled like an operating system. Everything I'm working on — ventures, writing, press — lives behind these icons. Click around. The wallpaper changes with your local time — come back at different hours.</div>
     <button id="welcome-enter-btn" onclick="enterDesktop()">Enter</button>
   </div>
 </div>
 
 <!-- WALLPAPER -->
 <div id="desktop-bg">
-  <div id="wallpaper-inner">
-    <svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%"
-         viewBox="0 0 160 100" preserveAspectRatio="xMidYMid slice">
-      <!-- SKY: warm sunset gradient, 6 horizontal strips -->
-      <rect x="0" y="0"  width="160" height="14" fill="#E87848"/>
-      <rect x="0" y="14" width="160" height="14" fill="#F09868"/>
-      <rect x="0" y="28" width="160" height="14" fill="#F5B888"/>
-      <rect x="0" y="42" width="160" height="14" fill="#EEB4A8"/>
-      <rect x="0" y="56" width="160" height="14" fill="#DDA8B8"/>
-      <rect x="0" y="70" width="160" height="30" fill="#B8A0C4"/>
-      <!-- SUN: concentric pixel rings, upper-right, behind mountains -->
-      <rect x="104" y="2"  width="28" height="28" fill="#C04000"/>
-      <rect x="107" y="5"  width="22" height="22" fill="#E07820"/>
-      <rect x="110" y="8"  width="16" height="16" fill="#F5A030"/>
-      <rect x="113" y="11" width="10" height="10" fill="#FFD058"/>
-      <rect x="115" y="13" width="6"  height="6"  fill="#FFF090"/>
-      <!-- MOUNTAINS FAR: lightest, broadest dome, peak ~x=80 -->
-      <rect x="0"  y="56" width="160" height="44" fill="#C4A8BC"/>
-      <rect x="14" y="54" width="132" height="2"  fill="#C4A8BC"/>
-      <rect x="28" y="52" width="104" height="2"  fill="#C4A8BC"/>
-      <rect x="40" y="50" width="80"  height="2"  fill="#C4A8BC"/>
-      <rect x="52" y="48" width="56"  height="2"  fill="#C4A8BC"/>
-      <rect x="62" y="46" width="36"  height="2"  fill="#C4A8BC"/>
-      <rect x="68" y="44" width="24"  height="2"  fill="#C4A8BC"/>
-      <rect x="72" y="42" width="16"  height="2"  fill="#C4A8BC"/>
-      <rect x="74" y="40" width="12"  height="2"  fill="#C4A8BC"/>
-      <rect x="76" y="38" width="8"   height="2"  fill="#C4A8BC"/>
-      <rect x="78" y="36" width="4"   height="2"  fill="#C4A8BC"/>
-      <rect x="79" y="34" width="2"   height="2"  fill="#C4A8BC"/>
-      <!-- MOUNTAINS MID: medium purple, left-leaning peak ~x=7 -->
-      <rect x="0"  y="62" width="160" height="38" fill="#9E80A0"/>
-      <rect x="0"  y="60" width="90"  height="2"  fill="#9E80A0"/>
-      <rect x="0"  y="58" width="70"  height="2"  fill="#9E80A0"/>
-      <rect x="0"  y="56" width="52"  height="2"  fill="#9E80A0"/>
-      <rect x="0"  y="54" width="36"  height="2"  fill="#9E80A0"/>
-      <rect x="0"  y="52" width="24"  height="2"  fill="#9E80A0"/>
-      <rect x="0"  y="50" width="14"  height="2"  fill="#9E80A0"/>
-      <rect x="2"  y="48" width="8"   height="2"  fill="#9E80A0"/>
-      <rect x="4"  y="46" width="4"   height="2"  fill="#9E80A0"/>
-      <rect x="6"  y="44" width="2"   height="2"  fill="#9E80A0"/>
-      <!-- MOUNTAINS NEAR: darkest, dramatic right-side peak ~x=158 -->
-      <rect x="72" y="68" width="88"  height="32" fill="#7A5880"/>
-      <rect x="84" y="66" width="76"  height="2"  fill="#7A5880"/>
-      <rect x="96" y="64" width="64"  height="2"  fill="#7A5880"/>
-      <rect x="106" y="62" width="54" height="2"  fill="#7A5880"/>
-      <rect x="114" y="60" width="46" height="2"  fill="#7A5880"/>
-      <rect x="120" y="58" width="40" height="2"  fill="#7A5880"/>
-      <rect x="126" y="56" width="34" height="2"  fill="#7A5880"/>
-      <rect x="131" y="54" width="29" height="2"  fill="#7A5880"/>
-      <rect x="135" y="52" width="25" height="2"  fill="#7A5880"/>
-      <rect x="138" y="50" width="22" height="2"  fill="#7A5880"/>
-      <rect x="141" y="48" width="19" height="2"  fill="#7A5880"/>
-      <rect x="143" y="46" width="17" height="2"  fill="#7A5880"/>
-      <rect x="145" y="44" width="15" height="2"  fill="#7A5880"/>
-      <rect x="147" y="42" width="13" height="2"  fill="#7A5880"/>
-      <rect x="149" y="40" width="11" height="2"  fill="#7A5880"/>
-      <rect x="150" y="38" width="10" height="2"  fill="#7A5880"/>
-      <rect x="152" y="36" width="8"  height="2"  fill="#7A5880"/>
-      <rect x="153" y="34" width="7"  height="2"  fill="#7A5880"/>
-      <rect x="154" y="32" width="6"  height="2"  fill="#7A5880"/>
-      <rect x="155" y="30" width="5"  height="2"  fill="#7A5880"/>
-      <rect x="156" y="28" width="4"  height="2"  fill="#7A5880"/>
-      <rect x="157" y="26" width="3"  height="2"  fill="#7A5880"/>
-      <rect x="158" y="24" width="2"  height="2"  fill="#7A5880"/>
-      <!-- OCEAN STRIP: visible in left valley between palms and near mountain -->
-      <rect x="0" y="70" width="160" height="3" fill="#7AACBC"/>
-      <rect x="0" y="73" width="160" height="2" fill="#6898AA"/>
-      <rect x="8"  y="71" width="10" height="1" fill="#9AC0CC"/>
-      <rect x="38" y="72" width="7"  height="1" fill="#9AC0CC"/>
-      <rect x="68" y="71" width="9"  height="1" fill="#9AC0CC"/>
-      <!-- PALM TREE 1: x≈9, dominant left silhouette -->
-      <rect x="8"  y="58" width="3"  height="18" fill="#3A2C00"/>
-      <rect x="8"  y="52" width="3"  height="3"  fill="#2A5040"/>
-      <rect x="5"  y="54" width="9"  height="2"  fill="#2A5040"/>
-      <rect x="1"  y="55" width="6"  height="2"  fill="#2A5040"/>
-      <rect x="13" y="55" width="5"  height="2"  fill="#2A5040"/>
-      <rect x="0"  y="57" width="4"  height="2"  fill="#2A5040"/>
-      <rect x="15" y="57" width="4"  height="2"  fill="#2A5040"/>
-      <!-- PALM TREE 2: x≈24, slightly shorter -->
-      <rect x="23" y="62" width="3"  height="14" fill="#3A2C00"/>
-      <rect x="23" y="56" width="3"  height="3"  fill="#2A5040"/>
-      <rect x="20" y="58" width="9"  height="2"  fill="#2A5040"/>
-      <rect x="16" y="59" width="6"  height="2"  fill="#2A5040"/>
-      <rect x="28" y="59" width="5"  height="2"  fill="#2A5040"/>
-      <rect x="14" y="61" width="4"  height="2"  fill="#2A5040"/>
-      <rect x="30" y="61" width="4"  height="2"  fill="#2A5040"/>
-      <!-- PALM TREE 3: x≈38, receding, partially behind mountains -->
-      <rect x="37" y="64" width="2"  height="12" fill="#2C2000"/>
-      <rect x="37" y="60" width="2"  height="2"  fill="#1E3C30"/>
-      <rect x="34" y="61" width="5"  height="2"  fill="#1E3C30"/>
-      <rect x="40" y="61" width="4"  height="2"  fill="#1E3C30"/>
-    </svg>
-  </div>
+  <div id="wallpaper-inner"></div>
 </div>
 
 <div id="marquee-rect"></div>
@@ -947,6 +874,7 @@
   <div class="menu-item">Help</div>
   <div id="menu-right">
     <div class="menu-item" onclick="openSpotlight()" aria-label="Search" style="display:flex;align-items:center;color:#86868b;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="22" y2="22"/></svg></div>
+    <span id="scene-indicator"></span>
     <div class="menu-item" id="clock">Loading…</div>
   </div>
 </div>
@@ -1180,6 +1108,228 @@ const SUPABASE_ANON_KEY = "sb_publishable_YG7h7Ce9njZYfTo9bcYdBw_tkqWOdg5";
 const _supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 let SITE_DATA = {};
 
+// ============ WALLPAPER ============
+function getCurrentScene() {
+  const h = new Date().getHours();
+  if (h >= 5  && h <= 7)  return 'dawn';
+  if (h >= 8  && h <= 10) return 'morning';
+  if (h >= 11 && h <= 14) return 'midday';
+  if (h >= 15 && h <= 17) return 'golden';
+  if (h >= 18 && h <= 20) return 'dusk';
+  return 'night';
+}
+
+const SCENE_META = {
+  dawn:    { emoji: '🌅', label: 'Dawn' },
+  morning: { emoji: '☀️', label: 'Morning' },
+  midday:  { emoji: '🔆', label: 'Midday' },
+  golden:  { emoji: '🌇', label: 'Golden Hour' },
+  dusk:    { emoji: '🌆', label: 'Dusk' },
+  night:   { emoji: '🌙', label: 'Night' },
+};
+
+const SCENES = {
+  dawn: {
+    sky: ['#7A5880','#C08898','#E8B8A0','#F0CEB8','#F6DCC8','#EECAB8'],
+    celestial: [
+      { x:-8, y:50, w:22, h:20, f:'#C82808' },
+      { x:-4, y:53, w:16, h:14, f:'#E86030' },
+      { x: 0, y:56, w:10, h: 8, f:'#F8A048' },
+      { x: 0, y:57, w: 5, h: 6, f:'#FFCC60' },
+    ],
+    pulse:false, stars:false, clouds:false, moonReflect:false,
+    mtnFar:'#B098BC', mtnMid:'#806888', mtnNear:'#483858',
+    ocean:'#6878A0', palmTrunk:'#282000', palmFrond:'#182018',
+  },
+  morning: {
+    sky: ['#4888C0','#70A8D0','#98C0D8','#B8D4E0','#CCE0E8','#B0C8D8'],
+    celestial: [
+      { x:24, y: 8, w:20, h:20, f:'#F0C840' },
+      { x:27, y:11, w:14, h:14, f:'#F8E888' },
+      { x:30, y:14, w: 8, h: 8, f:'#FFFFFF' },
+    ],
+    pulse:false, stars:false, clouds:true, moonReflect:false,
+    mtnFar:'#98B4C0', mtnMid:'#708898', mtnNear:'#508090',
+    ocean:'#4888B0', palmTrunk:'#3A2800', palmFrond:'#286030',
+  },
+  midday: {
+    sky: ['#3878C0','#4A8EC8','#5898CC','#68A4CC','#76B0D0','#84BAD4'],
+    celestial: [
+      { x:69, y:-2, w:22, h:22, f:'#F8E060' },
+      { x:72, y: 1, w:16, h:16, f:'#FFF4A0' },
+      { x:75, y: 4, w:10, h:10, f:'#FFFFFF' },
+    ],
+    pulse:false, stars:false, clouds:true, moonReflect:false,
+    mtnFar:'#608099', mtnMid:'#406880', mtnNear:'#285060',
+    ocean:'#1870A0', palmTrunk:'#3A2800', palmFrond:'#1A6828',
+  },
+  golden: {
+    sky: ['#A84018','#C86020','#E08838','#F0A850','#F8C468','#F4D888'],
+    celestial: [
+      { x:106, y:28, w:24, h:24, f:'#D05008' },
+      { x:109, y:31, w:18, h:18, f:'#E88020' },
+      { x:112, y:34, w:12, h:12, f:'#F8B838' },
+      { x:115, y:37, w: 6, h: 6, f:'#FFEC80' },
+      { x:117, y:39, w: 2, h: 2, f:'#FFFFCC' },
+    ],
+    pulse:true, stars:false, clouds:false, moonReflect:false,
+    mtnFar:'#C08850', mtnMid:'#A06830', mtnNear:'#784020',
+    ocean:'#6090A0', palmTrunk:'#3A2000', palmFrond:'#304818',
+  },
+  dusk: {
+    sky: ['#E87848','#F09868','#F5B888','#EEB4A8','#DDA8B8','#B8A0C4'],
+    celestial: [
+      { x:104, y: 2, w:28, h:28, f:'#C04000' },
+      { x:107, y: 5, w:22, h:22, f:'#E07820' },
+      { x:110, y: 8, w:16, h:16, f:'#F5A030' },
+      { x:113, y:11, w:10, h:10, f:'#FFD058' },
+      { x:115, y:13, w: 6, h: 6, f:'#FFF090' },
+    ],
+    pulse:true, stars:false, clouds:false, moonReflect:false,
+    mtnFar:'#C4A8BC', mtnMid:'#9E80A0', mtnNear:'#7A5880',
+    ocean:'#7AACBC', palmTrunk:'#3A2C00', palmFrond:'#2A5040',
+  },
+  night: {
+    sky: ['#050810','#080C1A','#0C1022','#10142A','#141830','#181C38'],
+    celestial: [
+      { x:50, y: 6, w:18, h:18, f:'#C0C0D0' },
+      { x:52, y: 8, w:14, h:14, f:'#D8D8E8' },
+      { x:54, y:10, w:10, h:10, f:'#F0F0F8' },
+      { x:56, y:12, w: 6, h: 6, f:'#FFFFFF' },
+    ],
+    pulse:false, stars:true, clouds:false, moonReflect:true,
+    mtnFar:'#1C2435', mtnMid:'#141C28', mtnNear:'#0E1820',
+    ocean:'#0E1830', palmTrunk:'#181200', palmFrond:'#0C1810',
+  },
+};
+
+function _buildClouds(scene) {
+  const col = scene === 'midday' ? '#FFFFFF' : '#E8F4F8';
+  const op  = scene === 'midday' ? '' : ' opacity="0.85"';
+  return (
+    `<g class="cloud" style="animation-delay:-15s">` +
+    `<rect x="-20" y="18" width="14" height="4" fill="${col}"${op}/><rect x="-16" y="16" width="8" height="2" fill="${col}"${op}/>` +
+    `</g>` +
+    `<g class="cloud-slow" style="animation-delay:-40s">` +
+    `<rect x="-40" y="28" width="10" height="4" fill="${col}" opacity="0.7"/><rect x="-36" y="26" width="6" height="2" fill="${col}" opacity="0.7"/>` +
+    `</g>`
+  );
+}
+
+function buildSceneSVG(scene) {
+  const s = SCENES[scene];
+  const [s1,s2,s3,s4,s5,s6] = s.sky;
+  const F = s.mtnFar, M = s.mtnMid, N = s.mtnNear, T = s.palmTrunk, P = s.palmFrond;
+
+  const sky =
+    `<rect x="0" y="0"  width="160" height="14" fill="${s1}"/>` +
+    `<rect x="0" y="14" width="160" height="14" fill="${s2}"/>` +
+    `<rect x="0" y="28" width="160" height="14" fill="${s3}"/>` +
+    `<rect x="0" y="42" width="160" height="14" fill="${s4}"/>` +
+    `<rect x="0" y="56" width="160" height="14" fill="${s5}"/>` +
+    `<rect x="0" y="70" width="160" height="30" fill="${s6}"/>`;
+
+  const stars = s.stars ?
+    `<rect x="18"  y="8"  width="2" height="2" fill="#C8C8D8" class="star" style="animation-delay:0s"/>` +
+    `<rect x="52"  y="14" width="2" height="2" fill="#C8C8D8" class="star" style="animation-delay:0.5s"/>` +
+    `<rect x="92"  y="7"  width="2" height="2" fill="#C8C8D8" class="star" style="animation-delay:1.0s"/>` +
+    `<rect x="120" y="18" width="2" height="2" fill="#C8C8D8" class="star" style="animation-delay:1.5s"/>` +
+    `<rect x="142" y="10" width="2" height="2" fill="#C8C8D8" class="star" style="animation-delay:0.8s"/>` : '';
+
+  const celestialInner = s.celestial.map(r =>
+    `<rect x="${r.x}" y="${r.y}" width="${r.w}" height="${r.h}" fill="${r.f}"/>`).join('');
+  const celestial = s.pulse ? `<g class="sun-glow">${celestialInner}</g>` : celestialInner;
+
+  const mtnFar =
+    `<rect x="0"  y="56" width="160" height="44" fill="${F}"/>` +
+    `<rect x="14" y="54" width="132" height="2"  fill="${F}"/>` +
+    `<rect x="28" y="52" width="104" height="2"  fill="${F}"/>` +
+    `<rect x="40" y="50" width="80"  height="2"  fill="${F}"/>` +
+    `<rect x="52" y="48" width="56"  height="2"  fill="${F}"/>` +
+    `<rect x="62" y="46" width="36"  height="2"  fill="${F}"/>` +
+    `<rect x="68" y="44" width="24"  height="2"  fill="${F}"/>` +
+    `<rect x="72" y="42" width="16"  height="2"  fill="${F}"/>` +
+    `<rect x="74" y="40" width="12"  height="2"  fill="${F}"/>` +
+    `<rect x="76" y="38" width="8"   height="2"  fill="${F}"/>` +
+    `<rect x="78" y="36" width="4"   height="2"  fill="${F}"/>` +
+    `<rect x="79" y="34" width="2"   height="2"  fill="${F}"/>`;
+
+  const mtnMid =
+    `<rect x="0"  y="62" width="160" height="38" fill="${M}"/>` +
+    `<rect x="0"  y="60" width="90"  height="2"  fill="${M}"/>` +
+    `<rect x="0"  y="58" width="70"  height="2"  fill="${M}"/>` +
+    `<rect x="0"  y="56" width="52"  height="2"  fill="${M}"/>` +
+    `<rect x="0"  y="54" width="36"  height="2"  fill="${M}"/>` +
+    `<rect x="0"  y="52" width="24"  height="2"  fill="${M}"/>` +
+    `<rect x="0"  y="50" width="14"  height="2"  fill="${M}"/>` +
+    `<rect x="2"  y="48" width="8"   height="2"  fill="${M}"/>` +
+    `<rect x="4"  y="46" width="4"   height="2"  fill="${M}"/>` +
+    `<rect x="6"  y="44" width="2"   height="2"  fill="${M}"/>`;
+
+  const mtnNear =
+    `<rect x="72"  y="68" width="88"  height="32" fill="${N}"/>` +
+    `<rect x="84"  y="66" width="76"  height="2"  fill="${N}"/>` +
+    `<rect x="96"  y="64" width="64"  height="2"  fill="${N}"/>` +
+    `<rect x="106" y="62" width="54"  height="2"  fill="${N}"/>` +
+    `<rect x="114" y="60" width="46"  height="2"  fill="${N}"/>` +
+    `<rect x="120" y="58" width="40"  height="2"  fill="${N}"/>` +
+    `<rect x="126" y="56" width="34"  height="2"  fill="${N}"/>` +
+    `<rect x="131" y="54" width="29"  height="2"  fill="${N}"/>` +
+    `<rect x="135" y="52" width="25"  height="2"  fill="${N}"/>` +
+    `<rect x="138" y="50" width="22"  height="2"  fill="${N}"/>` +
+    `<rect x="141" y="48" width="19"  height="2"  fill="${N}"/>` +
+    `<rect x="143" y="46" width="17"  height="2"  fill="${N}"/>` +
+    `<rect x="145" y="44" width="15"  height="2"  fill="${N}"/>` +
+    `<rect x="147" y="42" width="13"  height="2"  fill="${N}"/>` +
+    `<rect x="149" y="40" width="11"  height="2"  fill="${N}"/>` +
+    `<rect x="150" y="38" width="10"  height="2"  fill="${N}"/>` +
+    `<rect x="152" y="36" width="8"   height="2"  fill="${N}"/>` +
+    `<rect x="153" y="34" width="7"   height="2"  fill="${N}"/>` +
+    `<rect x="154" y="32" width="6"   height="2"  fill="${N}"/>` +
+    `<rect x="155" y="30" width="5"   height="2"  fill="${N}"/>` +
+    `<rect x="156" y="28" width="4"   height="2"  fill="${N}"/>` +
+    `<rect x="157" y="26" width="3"   height="2"  fill="${N}"/>` +
+    `<rect x="158" y="24" width="2"   height="2"  fill="${N}"/>`;
+
+  const moonRef = s.moonReflect ?
+    `<rect x="65" y="70" width="14" height="1" fill="#2A3858"/>` +
+    `<rect x="68" y="71" width="10" height="1" fill="#2A3858"/>` +
+    `<rect x="66" y="72" width="8"  height="1" fill="#263450"/>` : '';
+
+  const ocean = `<rect x="0" y="70" width="160" height="5" fill="${s.ocean}"/>${moonRef}`;
+
+  const palms =
+    `<rect x="8"  y="58" width="3"  height="18" fill="${T}"/>` +
+    `<rect x="8"  y="52" width="3"  height="3"  fill="${P}"/>` +
+    `<rect x="5"  y="54" width="9"  height="2"  fill="${P}"/>` +
+    `<rect x="1"  y="55" width="6"  height="2"  fill="${P}"/>` +
+    `<rect x="13" y="55" width="5"  height="2"  fill="${P}"/>` +
+    `<rect x="0"  y="57" width="4"  height="2"  fill="${P}"/>` +
+    `<rect x="15" y="57" width="4"  height="2"  fill="${P}"/>` +
+    `<rect x="23" y="62" width="3"  height="14" fill="${T}"/>` +
+    `<rect x="23" y="56" width="3"  height="3"  fill="${P}"/>` +
+    `<rect x="20" y="58" width="9"  height="2"  fill="${P}"/>` +
+    `<rect x="16" y="59" width="6"  height="2"  fill="${P}"/>` +
+    `<rect x="28" y="59" width="5"  height="2"  fill="${P}"/>` +
+    `<rect x="14" y="61" width="4"  height="2"  fill="${P}"/>` +
+    `<rect x="30" y="61" width="4"  height="2"  fill="${P}"/>` +
+    `<rect x="37" y="64" width="2"  height="12" fill="${T}"/>` +
+    `<rect x="37" y="60" width="2"  height="2"  fill="${P}"/>` +
+    `<rect x="34" y="61" width="5"  height="2"  fill="${P}"/>` +
+    `<rect x="40" y="61" width="4"  height="2"  fill="${P}"/>`;
+
+  const clouds = s.clouds ? _buildClouds(scene) : '';
+
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 160 100" preserveAspectRatio="xMidYMid slice">${sky}${stars}${celestial}${mtnFar}${mtnMid}${mtnNear}${ocean}${palms}${clouds}</svg>`;
+}
+
+(function initWallpaper() {
+  const scene = getCurrentScene();
+  document.getElementById('wallpaper-inner').innerHTML = buildSceneSVG(scene);
+  const el = document.getElementById('scene-indicator');
+  if (el) { const m = SCENE_META[scene]; el.textContent = m.emoji + ' ' + m.label + ' · '; }
+})();
+
 // ============ BOOT ============
 let _fetchResult = null, _fetchError = null, _fetchPromise = null;
 const _bootTimers = [];
@@ -1329,8 +1479,9 @@ function _buildBootLines(archInfo) {
     { delay: 3050, text: conn    ? `✓ Connection: ${conn}`                : null },
     { delay: 3250, text: tz      ? `✓ Timezone: ${tz}`                    : null },
     { delay: 3450, text: lang    ? `✓ Language: ${lang}`                  : null },
-    { delay: 3600, text: '' },
-    { delay: 3750, text: 'Loading content from supabase...' },
+    { delay: 3650, text: (() => { const _sn = getCurrentScene(); const _sl = {dawn:'Dawn',morning:'Morning',midday:'Midday',golden:'Golden Hour',dusk:'Dusk',night:'Night'}; return `✓ Wallpaper: ${_sl[_sn]} (local hour ${new Date().getHours()})`; })() },
+    { delay: 3800, text: '' },
+    { delay: 3950, text: 'Loading content from supabase...' },
   ];
   return slots.filter(s => s.text !== null);
 }
@@ -1339,7 +1490,7 @@ function _buildBootLines(archInfo) {
 
 function _runPhaseB(container) {
   const elapsed = Date.now() - _bootStart;
-  const wait = Math.max(3950 - elapsed, 0);
+  const wait = Math.max(4150 - elapsed, 0);
 
   if (_fetchError) {
     const errLines = [
